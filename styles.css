@@ -33,48 +33,63 @@ body{
 
 /* Topbar */
 .topbar{
-  background:rgba(255,255,255,0.95);
+  background:rgba(255,255,255,0.98);
   backdrop-filter: blur(6px);
   border-bottom:1px solid rgba(10,20,30,0.04);
   box-shadow:0 6px 20px rgba(12,18,28,0.02);
   position:sticky;top:0;z-index:50;
 }
-.topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
-.brand{display:flex;align-items:center;gap:16px}
+.topbar-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 0;
+}
 
-/* Logo: maior, não envolve texto e mostra iniciais "SP" dentro do quadrado */
+/* brand: logo + title alinhados corretamente */
+.brand{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  white-space:nowrap;
+}
+
+/* Logo: retângulo maior para caber "SoftPrime" (exibe o texto interno do elemento .logo) */
 .logo{
-  width:56px;
   height:56px;
-  min-width:56px;
+  min-height:56px;
+  min-width:160px;           /* garante largura mínima para a palavra */
+  padding:0 18px;            /* espaço horizontal para a palavra */
   border-radius:12px;
   background:linear-gradient(135deg,var(--primary),#1dc9a1);
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  color:transparent;         /* oculta qualquer texto longo dentro da tag */
+  color:#fff;                /* mostra o texto do elemento (não transparente) */
   font-weight:700;
-  font-size:14px;
+  font-size:15px;
   box-shadow:0 6px 16px rgba(14,163,122,0.12);
   overflow:hidden;
-  position:relative;
-}
-/* Inserimos iniciais 'SP' via CSS para ficar sempre centralizado e curto */
-.logo::after{
-  content: "SP";
-  color:#fff;
-  font-weight:800;
-  font-size:15px;
-  letter-spacing:0.5px;
+  flex-shrink:0;
+  line-height:1;
+  letter-spacing:0.2px;
 }
 
-/* Título em linha, com margem para não ser encoberto */
+/* Remove pseudo-content anterior (se existir) para não duplicar texto */
+.logo::after{ content: none !important; }
+
+/* Title: visível, não sobreposto, alinhado verticalmente */
 .title{
   font-weight:600;
-  font-size:1.02rem;
+  font-size:1.05rem;
   color:#102027;
+  line-height:1;
+  margin:0;
+  display:inline-block;
   white-space:nowrap;
-  margin-left:2px;
+  text-overflow:ellipsis;
+  overflow:hidden;
 }
 
 /* Top actions (export) */
@@ -103,14 +118,14 @@ button.ghost:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(16,32,3
 h3{margin:0 0 12px 0;font-size:1.05rem;color:#0f1720}
 h4.list-title{margin:12px 0 8px 0;color:var(--muted);font-size:0.95rem}
 
-/* Forms: default visible border and bg, focus styled (no black outline) */
+/* Forms: borda e fundo visíveis; foco sem contorno preto */
 .form-row{display:flex;gap:12px;margin-bottom:10px}
 .form-row input, .form-row select{
   flex:1;
   padding:12px;
   border-radius:10px;
-  border:1px solid rgba(16,32,39,0.08); /* visível sem foco */
-  background:#ffffff; /* opaco, não transparente */
+  border:1px solid rgba(16,32,39,0.08);
+  background:#ffffff;
   font-size:0.95rem;
   color:#0f1720;
   transition:box-shadow .14s, border-color .12s, transform .08s;
@@ -122,7 +137,7 @@ h4.list-title{margin:12px 0 8px 0;color:var(--muted);font-size:0.95rem}
 .form-row input::placeholder{color:var(--muted-weak)}
 .form-issuer .form-row + .form-row{margin-top:6px}
 
-/* Focus: verde sutil (substitui borda preta/nativa) */
+/* Focus: destaque verde sutil (sem a borda preta) */
 .form-row input:focus, .form-row select:focus, .form-row textarea:focus{
   border-color: var(--primary-600) !important;
   box-shadow: 0 10px 30px rgba(var(--primary-rgb),0.10) !important;
@@ -134,10 +149,8 @@ h4.list-title{margin:12px 0 8px 0;color:var(--muted);font-size:0.95rem}
   outline-offset: 3px;
 }
 
-/* Fix Chrome's autofill color/outline */
-input:-webkit-autofill,
-textarea:-webkit-autofill,
-select:-webkit-autofill {
+/* Corrige autofill do Chrome */
+input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
   -webkit-box-shadow: 0 0 0px 1000px #fff inset !important;
   box-shadow: 0 0 0px 1000px #fff inset !important;
   -webkit-text-fill-color: #0f1720 !important;
