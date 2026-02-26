@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gerador de Orçamentos SoftPrime</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container" style="display:flex;justify-content:space-between;align-items:center">
+      <div class="brand">Gerador de Orçamentos</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="exportCsvBtn" title="Exportar todos os orçamentos para Excel (CSV)">Exportar Excel</button>
+        <button id="exportDocBtn" title="Exportar o orçamento aberto para Word (DOC)">Exportar Word</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card grid-2">
+      <div>
+        <h3>Emissor</h3>
+        <form id="issuerForm" class="form-issuer">
+          <input id="issuerName" placeholder="Nome / Razão Social" required />
+          <input id="issuerCnpjCpf" placeholder="CNPJ / CPF" />
+          <input id="issuerAddress" placeholder="Endereço (rua, nº, bairro, cidade)" />
+          <input id="issuerPhone" placeholder="Telefone" />
+          <div style="display:flex;gap:8px">
+            <button id="issuerSubmitBtn" type="submit" class="full-width">Adicionar emissor</button>
+            <button id="issuerCancelBtn" type="button" style="display:none">Cancelar</button>
+          </div>
+        </form>
+        <ul id="issuerList" class="list"></ul>
+      </div>
+
+      <div>
+        <h3>Cliente</h3>
+        <form id="clientForm" class="form-issuer">
+          <input id="clientName" placeholder="Nome / Razão Social" required />
+          <input id="clientCnpjCpf" placeholder="CNPJ / CPF" />
+          <input id="clientAddress" placeholder="Endereço (rua, nº, bairro, cidade)" />
+          <input id="clientPhone" placeholder="Telefone" />
+          <div style="display:flex;gap:8px">
+            <button id="clientSubmitBtn" type="submit" class="full-width">Adicionar cliente</button>
+            <button id="clientCancelBtn" type="button" style="display:none">Cancelar</button>
+          </div>
+        </form>
+        <ul id="clientList" class="list"></ul>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Novo Orçamento</h3>
+      <div class="row">
+        <label>Emissor
+          <select id="selectIssuer"></select>
+        </label>
+        <label>Cliente
+          <select id="selectClient"></select>
+        </label>
+        <label>Nº Orçamento
+          <input id="quoteNumber" placeholder="opcional" />
+        </label>
+      </div>
+
+      <table class="items-table" id="itemsTable">
+        <thead>
+          <tr>
+            <th>Descrição</th>
+            <th>Qtd</th>
+            <th>Unit.</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="itemsBody"></tbody>
+      </table>
+
+      <div class="item-controls">
+        <button id="addItemBtn">Adicionar item</button>
+      </div>
+
+      <div class="totals-row">
+        <div>Subtotal: R$ <span id="subtotal">0.00</span></div>
+        <div class="grand">Total: R$ <span id="grandTotal">0.00</span></div>
+      </div>
+
+      <div class="row buttons">
+        <button id="saveQuoteBtn" class="primary">Salvar Orçamento</button>
+        <button id="previewBtn">Visualizar / Imprimir</button>
+        <button id="cancelEditBtn" style="display:none;margin-left:8px;">Cancelar Edição</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Orçamentos Salvos</h3>
+      <ul id="quotesList" class="list"></ul>
+    </section>
+  </main>
+
+  <!-- preview modal -->
+  <div id="previewModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-content">
+      <button id="closePreview" class="close" title="Fechar">×</button>
+      <div id="previewArea"></div>
+      <div class="modal-actions">
+        <button id="printBtn" class="primary">Imprimir / Salvar PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    © 2026 Desenvolvido por SoftPrime.
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
