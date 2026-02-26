@@ -2,108 +2,138 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Gerador de Orçamentos</title>
+
+  <!-- Fonte -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="topbar">
-    <div class="container" style="display:flex;justify-content:space-between;align-items:center">
-      <div class="brand">Gerador de Orçamentos</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button id="exportCsvBtn" title="Exportar todos os orçamentos para Excel (CSV)">Exportar Excel</button>
-        <button id="exportDocBtn" title="Exportar o orçamento aberto para Word (DOC)">Exportar Word</button>
+    <div class="container topbar-inner">
+      <div class="brand">
+        <span class="logo">SoftPrime</span>
+        <span class="title">Gerador de Orçamentos</span>
+      </div>
+
+      <div class="top-actions" role="toolbar" aria-label="Export actions">
+        <button id="exportCsvBtn" class="ghost">Exportar Excel</button>
+        <button id="exportDocBtn" class="ghost">Exportar Word</button>
       </div>
     </div>
   </header>
 
-  <main class="container">
+  <main class="container main-grid" role="main">
+    <!-- Emissor / Cliente -->
     <section class="card grid-2">
-      <div>
+      <div class="card-col">
         <h3>Emissor</h3>
-        <form id="issuerForm" class="form-issuer">
-          <input id="issuerName" placeholder="Razão social" required />
-          <input id="issuerCnpjCpf" placeholder="CNPJ / CPF" />
-          <input id="issuerAddress" placeholder="Endereço (rua, nº, bairro, cidade)" />
-          <input id="issuerPhone" placeholder="Telefone" />
-          <div style="display:flex;gap:8px">
+        <form id="issuerForm" class="form-issuer" autocomplete="off">
+          <div class="form-row">
+            <input id="issuerName" placeholder="Razão social" required />
+            <input id="issuerCnpjCpf" placeholder="CNPJ / CPF" />
+          </div>
+          <div class="form-row">
+            <input id="issuerAddress" placeholder="Endereço (rua, nº, bairro, cidade)" />
+            <input id="issuerPhone" placeholder="Telefone" />
+          </div>
+
+          <div class="form-actions">
             <button id="issuerSubmitBtn" type="submit" class="primary full-width">Adicionar emissor</button>
-            <button id="issuerCancelBtn" type="button" class="small" style="display:none">Cancelar</button>
+            <button id="issuerCancelBtn" type="button" class="muted small" style="display:none">Cancelar</button>
           </div>
         </form>
-        <ul id="issuerList" class="list issuer-list"></ul>
+
+        <h4 class="list-title">Emissores</h4>
+        <ul id="issuerList" class="scroll-list issuer-list" aria-live="polite"></ul>
       </div>
 
-      <div>
+      <div class="card-col">
         <h3>Cliente</h3>
-        <form id="clientForm" class="form-issuer">
-          <input id="clientName" placeholder="Nome / Empresa" required />
-          <input id="clientCnpjCpf" placeholder="CNPJ / CPF" />
-          <input id="clientAddress" placeholder="Endereço (rua, nº, bairro, cidade)" />
-          <input id="clientPhone" placeholder="Telefone" />
-          <div style="display:flex;gap:8px">
+        <form id="clientForm" class="form-issuer" autocomplete="off">
+          <div class="form-row">
+            <input id="clientName" placeholder="Nome / Empresa" required />
+            <input id="clientCnpjCpf" placeholder="CNPJ / CPF" />
+          </div>
+          <div class="form-row">
+            <input id="clientAddress" placeholder="Endereço (rua, nº, bairro, cidade)" />
+            <input id="clientPhone" placeholder="Telefone" />
+          </div>
+
+          <div class="form-actions">
             <button id="clientSubmitBtn" type="submit" class="primary full-width">Adicionar cliente</button>
-            <button id="clientCancelBtn" type="button" class="small" style="display:none">Cancelar</button>
+            <button id="clientCancelBtn" type="button" class="muted small" style="display:none">Cancelar</button>
           </div>
         </form>
-        <ul id="clientList" class="list client-list"></ul>
+
+        <h4 class="list-title">Clientes</h4>
+        <ul id="clientList" class="scroll-list client-list" aria-live="polite"></ul>
       </div>
     </section>
 
+    <!-- Novo Orçamento -->
     <section class="card">
       <h3>Novo Orçamento</h3>
-      <div class="row">
-        <label>Emissor
-          <select id="selectIssuer"></select>
+
+      <div class="row form-row-compact">
+        <label class="field">
+          Emissor
+          <select id="selectIssuer"><option value="">-- selecione --</option></select>
         </label>
-        <label>Cliente
-          <select id="selectClient"></select>
+
+        <label class="field">
+          Cliente
+          <select id="selectClient"><option value="">-- selecione --</option></select>
         </label>
-        <label>Nº Orçamento
+
+        <label class="field small-field">
+          Nº Orçamento
           <input id="quoteNumber" placeholder="opcional" />
         </label>
       </div>
 
-      <table class="items-table" id="itemsTable">
+      <table class="items-table" id="itemsTable" aria-label="Itens do orçamento">
         <thead>
           <tr>
-            <th>Descrição</th>
-            <th>Qtd</th>
-            <th>Unit.</th>
-            <th>Total</th>
-            <th></th>
+            <th style="width:62%">Descrição</th>
+            <th style="width:9%">Qtd</th>
+            <th style="width:12%">Unit.</th>
+            <th style="width:12%">Total</th>
+            <th style="width:5%"></th>
           </tr>
         </thead>
         <tbody id="itemsBody"></tbody>
       </table>
 
       <div class="item-controls">
-        <button id="addItemBtn">Adicionar item</button>
+        <button id="addItemBtn" class="ghost">Adicionar item</button>
       </div>
 
       <div class="totals-row">
-        <div>Subtotal: R$ <span id="subtotal">0.00</span></div>
+        <div class="subtotal">Subtotal: R$ <span id="subtotal">0.00</span></div>
         <div class="grand">Total: R$ <span id="grandTotal">0.00</span></div>
       </div>
 
-      <div class="row buttons">
+      <div class="row form-actions-row">
         <button id="saveQuoteBtn" class="primary">Salvar Orçamento</button>
-        <button id="cancelEditBtn" style="display:none;margin-left:8px;">Cancelar Edição</button>
+        <button id="cancelEditBtn" class="muted" style="display:none">Cancelar Edição</button>
       </div>
     </section>
 
+    <!-- Orçamentos Salvos -->
     <section class="card">
       <h3>Orçamentos Salvos</h3>
-      <ul id="quotesList" class="list"></ul>
+      <ul id="quotesList" class="list" aria-live="polite"></ul>
     </section>
   </main>
 
-  <!-- preview modal -->
-  <div id="previewModal" class="modal hidden" aria-hidden="true">
+  <!-- Preview modal -->
+  <div id="previewModal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="modal-content">
       <button id="closePreview" class="close" title="Fechar">×</button>
-      <div id="previewArea"></div>
+      <div id="previewArea" class="preview-area"></div>
       <div class="modal-actions">
         <button id="printBtn" class="primary">Imprimir / Salvar PDF</button>
       </div>
@@ -111,7 +141,7 @@
   </div>
 
   <footer class="footer">
-    Dados salvos localmente no seu navegador. Faça export para backup.
+    <div class="container">Dados salvos localmente no seu navegador. Faça export para backup.</div>
   </footer>
 
   <script src="app.js"></script>
