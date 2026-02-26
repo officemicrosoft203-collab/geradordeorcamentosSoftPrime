@@ -1,7 +1,8 @@
-/* Tema sofisticado, limpo e moderno
-   - Contrastes mais ricos
-   - Botões e inputs refinados
-   - Layout responsivo
+/* Ajustes:
+   - input/select: borda visível mesmo sem foco
+   - foco: sem outline preto do navegador; efeito verde sutil
+   - mantém a tipografia e o layout sofisticado
+   - rodapé preservado: "© Desenvolvido por SoftPrime"
 */
 
 :root{
@@ -11,9 +12,9 @@
   --muted-weak: #9aa6b2;
   --primary: #0ea37a;
   --primary-600: #0a8b68;
+  --primary-rgb: 14,163,122;
   --accent: #6c5ce7;
   --danger: #e05656;
-  --glass: rgba(255,255,255,0.7);
   --shadow: 0 10px 30px rgba(15,22,30,0.06);
   --radius: 14px;
   --container: 1100px;
@@ -39,7 +40,7 @@ body{
 
 /* Topbar */
 .topbar{
-  background:rgba(255,255,255,0.9);
+  background:rgba(255,255,255,0.95);
   backdrop-filter: blur(6px);
   border-bottom:1px solid rgba(10,20,30,0.04);
   box-shadow:0 6px 20px rgba(12,18,28,0.02);
@@ -80,20 +81,44 @@ button.ghost:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(16,32,3
 h3{margin:0 0 12px 0;font-size:1.05rem;color:#0f1720}
 h4.list-title{margin:12px 0 8px 0;color:var(--muted);font-size:0.95rem}
 
-/* Forms */
+/* Forms: default visible border and bg, no browser black outline on focus */
 .form-row{display:flex;gap:12px;margin-bottom:10px}
-.form-row input, .form-row select{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(16,32,39,0.06);background:#fbfdff}
+.form-row input, .form-row select{
+  flex:1;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid rgba(16,32,39,0.08); /* mais visível sem foco */
+  background:#ffffff; /* opaco, não transparente */
+  font-size:0.95rem;
+  color:#0f1720;
+  transition:box-shadow .14s, border-color .12s, transform .08s;
+  outline: none; /* remove outline do navegador */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
 .form-row input::placeholder{color:var(--muted-weak)}
 .form-issuer .form-row + .form-row{margin-top:6px}
 
+/* Focus: verde sutil (remove a borda preta) */
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus{
+  border-color: var(--primary-600);
+  box-shadow: 0 8px 24px rgba(var(--primary-rgb),0.08);
+  transform: translateY(-1px);
+}
+
+/* For accessibility: visible focus ring for keyboard users */
+.form-row input:focus-visible, .form-row select:focus-visible{
+  outline: 3px solid rgba(var(--primary-rgb),0.12);
+  outline-offset: 3px;
+}
+
+/* label/grid layout */
 .field{display:block}
-.field select{padding:12px;border-radius:10px;border:1px solid rgba(16,32,39,0.06);background:#fbfdff}
+.field select{padding:12px;border-radius:10px;border:1px solid rgba(16,32,39,0.08);background:#fff}
 
 /* compact row for selects */
 .form-row-compact{display:grid;grid-template-columns:1fr 1fr 220px;gap:12px;margin-bottom:16px}
 @media (max-width:900px){.form-row-compact{grid-template-columns:1fr}}
-
-.small-field input{padding:10px}
 
 /* Buttons */
 button{font-weight:600;border-radius:10px;border:none;padding:10px 14px;cursor:pointer}
@@ -107,7 +132,7 @@ button.small{padding:6px 10px;font-size:0.88rem}
 .items-table{width:100%;border-collapse:collapse;margin-top:6px}
 .items-table thead th{background:#fbfdff;text-align:left;padding:12px;border-bottom:1px solid rgba(10,20,30,0.04);color:var(--muted);font-weight:700}
 .items-table td{padding:10px;border-bottom:1px dashed rgba(10,20,30,0.04);vertical-align:middle}
-.items-table input{padding:10px;border-radius:8px;border:1px solid rgba(16,32,39,0.05);width:100}
+.items-table input{padding:10px;border-radius:8px;border:1px solid rgba(16,32,39,0.06);width:100%}
 
 /* Item controls */
 .item-controls{margin-top:12px}
@@ -118,7 +143,7 @@ button.small{padding:6px 10px;font-size:0.88rem}
 .subtotal{color:var(--muted);padding:8px 12px;border-radius:10px}
 .grand{font-weight:700;color:var(--primary);padding:8px 12px;border-radius:10px;background:linear-gradient(90deg,rgba(14,163,122,0.06),transparent)}
 
-/* Lists: emitters / clients / quotes */
+/* Lists */
 .scroll-list{list-style:none;padding:8px 6px;margin:0;max-height:220px;overflow:auto;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdff)}
 .list li{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:8px;margin-bottom:8px;background:transparent;border:1px solid rgba(16,32,39,0.03)}
 .list li .meta{color:var(--muted);font-size:0.9rem}
@@ -134,7 +159,7 @@ button.small{padding:6px 10px;font-size:0.88rem}
 .modal-content{background:linear-gradient(180deg,#ffffff,#fbfdff);padding:18px;border-radius:12px;width:90%;max-width:920px;box-shadow:0 25px 60px rgba(10,20,30,0.2);position:relative}
 .modal .close{position:absolute;right:12px;top:10px;background:transparent;border:none;font-size:22px;color:#333;cursor:pointer}
 
-/* Footer */
+/* Footer (mantido conforme solicitado) */
 .footer{padding:24px 0;color:var(--muted);font-size:0.95rem;text-align:center}
 
 /* Responsividade */
