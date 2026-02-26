@@ -1,18 +1,21 @@
 :root{
-  --bg:#f5f6fb;
-  --card:#ffffff;
-  --muted:#7b7f87;
-  --accent:#6c5ce7; /* roxo (não usado para primary here) */
-  --primary:#1abc9c; /* verde action (principal) */
-  --btn-bg:#6c5ce7;
-  --btn-color:#fff;
-  --card-shadow: 0 6px 18px rgba(22,29,44,0.06);
+  --bg:#f0f2f6;            /* fundo levemente mais escuro para destacar cards */
+  --card:#fbfcfd;          /* card off-white (menos brilhante) */
+  --muted:#636670;        /* texto secundário */
+  --muted-weak:#9aa0ab;   /* placeholder / labels menos brilhantes */
+  --primary:#18af84;      /* verde principal (botões) */
+  --primary-dark:#149572;
+  --accent:#6c5ce7;
+  --danger:#e74c3c;
+  --card-shadow: 0 8px 20px rgba(22,29,44,0.06);
   --radius:12px;
   --max-width:1100px;
   --muted-2:#eef0f6;
-  --danger:#e74c3c;
+  --border:#e6e9ef;
+  --control-bg:#ffffff;
 }
 
+/* Fonte */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
 
 *{box-sizing:border-box}
@@ -24,7 +27,7 @@ body{
   color:#222;
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
-  line-height:1.4;
+  line-height:1.45;
 }
 
 /* container */
@@ -34,19 +37,38 @@ body{
   padding:0 18px;
 }
 
-/* top header */
+/* topbar */
 .topbar{
-  background:#fff;
-  border-bottom:1px solid #eee;
-  box-shadow:var(--card-shadow);
-  padding:12px 0;
+  background:var(--card);
+  border-bottom:1px solid rgba(0,0,0,0.04);
+  box-shadow:0 4px 12px rgba(22,29,44,0.03);
+  padding:14px 0;
+  position:sticky;
+  top:0;
+  z-index:30;
 }
 .topbar .brand{
   font-weight:700;
   text-align:center;
-  font-size:1.1rem;
+  font-size:1.05rem;
 }
-.topbar .container{display:flex;align-items:center;justify-content:space-between}
+.topbar .container{display:flex;align-items:center;justify-content:space-between;gap:12px}
+
+/* Export buttons no topo */
+#exportCsvBtn, #exportDocBtn{
+  background:transparent;
+  color:#222;
+  border:1px solid var(--border);
+  padding:8px 12px;
+  border-radius:8px;
+  transition:all .12s;
+  font-weight:600;
+}
+#exportCsvBtn:hover, #exportDocBtn:hover{
+  background:#fff;
+  transform:translateY(-2px);
+  box-shadow:0 6px 16px rgba(20,20,20,0.04);
+}
 
 /* cards */
 .card{
@@ -59,7 +81,7 @@ body{
 }
 
 /* grid */
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
 @media (max-width:900px){
   .grid-2{grid-template-columns:1fr}
 }
@@ -67,74 +89,87 @@ body{
 /* headings */
 h3{margin:0 0 12px 0;font-size:1.05rem}
 
-/* forms */
-.form-issuer input,
+/* forms / inputs */
 input[type="text"], input[type="number"], select, textarea{
   width:100%;
   padding:10px 12px;
   border-radius:8px;
-  border:1px solid #e6e9f0;
-  background:#fff;
+  border:1px solid var(--border);
+  background:var(--control-bg);
   font-size:0.95rem;
   color:#222;
   outline:none;
+  transition:all .12s;
 }
-input::placeholder{color:var(--muted)}
+input::placeholder, select option[disabled] { color:var(--muted-weak); }
+input:focus, select:focus, textarea:focus{
+  border-color:var(--primary);
+  box-shadow:0 6px 18px rgba(24,128,102,0.06);
+}
+
+/* label layout */
 .row{display:flex;gap:12px;align-items:center;margin-bottom:12px}
 .row label{flex:1;font-size:0.95rem}
 .row input, .row select{width:100%}
 
-/* items table */
+/* tabela de itens */
 .items-table{width:100%;border-collapse:collapse;margin-top:10px}
-.items-table thead th{background:var(--muted-2);text-align:left;padding:10px;border-bottom:1px solid #eee;color:#666;font-weight:600}
-.items-table td{padding:8px;border-bottom:1px solid #f1f2f6}
-.item-controls{margin-top:10px}
+.items-table thead th{background:var(--muted-2);text-align:left;padding:12px;border-bottom:1px solid #e9edf3;color:#666;font-weight:600}
+.items-table td{padding:10px;border-bottom:1px solid #f1f2f6;vertical-align:middle}
+.item-controls{margin-top:12px}
 
 /* totals */
 .totals-row{display:flex;justify-content:flex-end;gap:18px;align-items:center;margin-top:14px}
 .totals-row .grand{font-weight:700;color:var(--primary)}
 .totals-row div{background:transparent;padding:8px 12px;border-radius:8px;color:var(--muted)}
 
-/* buttons (primary + small variants) */
+/* botão primário (verde) */
 button{
   cursor:pointer;
   padding:8px 12px;
   border-radius:8px;
-  border:1px solid rgba(34,34,34,0.08);
+  border:1px solid rgba(34,34,34,0.06);
   background:#fff;
   color:#222;
   font-size:0.9rem;
   transition:all .12s ease;
 }
-button.primary, button#saveQuoteBtn{
+button.primary, button#saveQuoteBtn, .primary.full-width{
   background:var(--primary);
   color:#fff;
   border:none;
-  box-shadow: 0 6px 14px rgba(26,188,156,0.08);
+  box-shadow:0 8px 20px rgba(24,128,102,0.06);
 }
-button.primary:hover{opacity:0.95;transform:translateY(-1px)}
+button.primary:hover{background:var(--primary-dark);transform:translateY(-1px)}
 button.small{padding:6px 8px;font-size:0.85rem;border-radius:6px;}
 .full-width{width:100%;display:inline-block}
 
-/* lists */
+/* listas */
 .list{list-style:none;padding:0;margin:0}
 .list li{display:flex;align-items:flex-start;justify-content:space-between;padding:12px;border-radius:8px;margin-bottom:10px;background:transparent}
 .list li .meta{color:var(--muted);font-size:0.88rem;margin-top:6px}
 .list li .quote-actions{display:flex;gap:8px;align-items:center}
 .quote-actions button{
-  padding:6px 8px;border-radius:6px;border:1px solid rgba(34,34,34,0.08);background:#fafafa;font-size:0.85rem;
+  padding:6px 8px;border-radius:6px;border:1px solid rgba(34,34,34,0.08);background:#fff;font-size:0.85rem;color:#333;
+  box-shadow:none;
 }
-.quote-actions button:hover{background:#fff;box-shadow:0 3px 10px rgba(24,28,35,0.05)}
+.quote-actions button:hover{background:var(--muted-2);box-shadow:0 3px 8px rgba(24,28,35,0.04)}
+/* destaque para botões export e visualizar na lista */
+.quote-actions .view-quote{background:transparent;border:1px solid var(--border);color:#222}
+.quote-actions .export-quote, .quote-actions .export-pdf{background:#fff;border:1px solid rgba(0,0,0,0.06);color:#222}
 
-/* scrollable lists (issuers/clients) */
+/* scrollbar discreto nas listas */
 .issuer-list, .client-list{
-  max-height:220px;overflow-y:auto;padding-right:6px;margin-top:12px;
-  border-radius:6px;
+  max-height:220px;overflow-y:auto;padding-right:6px;margin-top:12px;border-radius:6px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.1));
+  padding:12px;
+  border:1px solid rgba(0,0,0,0.03);
 }
+.issuer-list li, .client-list li{background:transparent;padding:10px 6px}
 .issuer-list::-webkit-scrollbar, .client-list::-webkit-scrollbar { width:8px; height:8px }
-.issuer-list::-webkit-scrollbar-thumb, .client-list::-webkit-scrollbar-thumb { background:rgba(20,20,20,0.08); border-radius:6px }
+.issuer-list::-webkit-scrollbar-thumb, .client-list::-webkit-scrollbar-thumb { background:rgba(20,20,20,0.06); border-radius:6px }
 
-/* smaller controls */
+/* pequenos controles */
 .del-item{background:transparent;border:1px solid rgba(0,0,0,0.06);padding:6px;border-radius:4px}
 .edit-issuer, .edit-client, .del-issuer, .del-client{margin-left:8px;padding:6px 8px;}
 
@@ -145,11 +180,11 @@ button.small{padding:6px 8px;font-size:0.85rem;border-radius:6px;}
 .modal .close{position:absolute;right:16px;top:12px;background:transparent;border:none;font-size:20px}
 
 /* responsive tweaks */
-@media (max-width:600px){
+@media (max-width:900px){
   .row{flex-direction:column}
   .totals-row{flex-direction:column;align-items:flex-end}
   .quote-actions{flex-wrap:wrap;gap:6px}
 }
 
-/* small visual polish */
+/* footer */
 .footer{padding:16px;text-align:center;color:var(--muted);font-size:0.9rem}
