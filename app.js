@@ -156,7 +156,8 @@ function renderQuotes(){
   attachQuoteListListeners();
 }
 
-// items rendering
+// rest of app.js unchanged (items, saving, preview, exports...)
+// ... (the rest of the file is the same as previously provided)
 function renderItems(items=[]){
   if (!itemsBody) return;
   itemsBody.innerHTML = "";
@@ -524,11 +525,8 @@ function exportQuotePdf(quoteId){
     </style></head><body>${html}</body></html>`);
   w.document.close();
   w.focus();
-  // wait a short moment then trigger print
   setTimeout(()=> {
     w.print();
-    // optional: do not auto-close — user may cancel print; closing can be annoying
-    // setTimeout(()=>w.close(), 500);
   }, 300);
 }
 

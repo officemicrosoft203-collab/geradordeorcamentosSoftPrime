@@ -2,8 +2,8 @@
   --bg:#f5f6fb;
   --card:#ffffff;
   --muted:#7b7f87;
-  --accent:#6c5ce7; /* roxo claro */
-  --accent-2:#1abc9c; /* verde action */
+  --accent:#6c5ce7; /* roxo (não usado para primary here) */
+  --primary:#1abc9c; /* verde action (principal) */
   --btn-bg:#6c5ce7;
   --btn-color:#fff;
   --card-shadow: 0 6px 18px rgba(22,29,44,0.06);
@@ -92,7 +92,7 @@ input::placeholder{color:var(--muted)}
 
 /* totals */
 .totals-row{display:flex;justify-content:flex-end;gap:18px;align-items:center;margin-top:14px}
-.totals-row .grand{font-weight:700;color:var(--accent)}
+.totals-row .grand{font-weight:700;color:var(--primary)}
 .totals-row div{background:transparent;padding:8px 12px;border-radius:8px;color:var(--muted)}
 
 /* buttons (primary + small variants) */
@@ -107,12 +107,14 @@ button{
   transition:all .12s ease;
 }
 button.primary, button#saveQuoteBtn{
-  background:var(--accent-2);
+  background:var(--primary);
   color:#fff;
   border:none;
+  box-shadow: 0 6px 14px rgba(26,188,156,0.08);
 }
 button.primary:hover{opacity:0.95;transform:translateY(-1px)}
 button.small{padding:6px 8px;font-size:0.85rem;border-radius:6px;}
+.full-width{width:100%;display:inline-block}
 
 /* lists */
 .list{list-style:none;padding:0;margin:0}
@@ -126,7 +128,7 @@ button.small{padding:6px 8px;font-size:0.85rem;border-radius:6px;}
 
 /* scrollable lists (issuers/clients) */
 .issuer-list, .client-list{
-  max-height:200px;overflow-y:auto;padding-right:6px;margin-top:12px;
+  max-height:220px;overflow-y:auto;padding-right:6px;margin-top:12px;
   border-radius:6px;
 }
 .issuer-list::-webkit-scrollbar, .client-list::-webkit-scrollbar { width:8px; height:8px }
