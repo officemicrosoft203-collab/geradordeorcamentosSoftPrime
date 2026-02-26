@@ -1,11 +1,9 @@
-// app.js — Ajustado: permite duplicação de número se o emissor for diferente
-// Mantém edição de orçamentos, edição de emissor/cliente, export CSV/DOC, assinatura e rodapé
+// app.js — movido: Visualizar/Imprimir para cada orçamento; adicionada exportação Word por orçamento
 const STORE_KEY = "simple_quotes_v2";
 
 function uid(){ return Math.random().toString(36).slice(2,9); }
 const money = v => Number(v||0).toFixed(2);
 
-// ---------- store ----------
 function loadStore(){
   const raw = localStorage.getItem(STORE_KEY);
   if (!raw){
@@ -40,10 +38,9 @@ function formatQuoteNumber(n){
   return `${year}-${String(n).padStart(4,'0')}`;
 }
 
-// ---------- initial ----------
 let store = loadStore();
 
-// ---------- DOM refs ----------
+// DOM refs
 const issuerForm = document.getElementById("issuerForm");
 const issuerList = document.getElementById("issuerList");
 const issuerName = document.getElementById("issuerName");
@@ -71,26 +68,24 @@ const addItemBtn = document.getElementById("addItemBtn");
 const subtotalEl = document.getElementById("subtotal");
 const grandTotalEl = document.getElementById("grandTotal");
 const saveQuoteBtn = document.getElementById("saveQuoteBtn");
-const previewBtn = document.getElementById("previewBtn");
 const cancelEditBtn = document.getElementById("cancelEditBtn");
 const quotesList = document.getElementById("quotesList");
 
 const exportCsvBtn = document.getElementById("exportCsvBtn");
-const exportDocBtn = document.getElementById("exportDocBtn");
+const exportDocBtn = document.getElementById("exportDocBtn"); // keeps exporting current preview (if any)
 
 const previewModal = document.getElementById("previewModal");
 const previewArea = document.getElementById("previewArea");
 const closePreview = document.getElementById("closePreview");
 const printBtn = document.getElementById("printBtn");
 
-// ---------- state ----------
 let currentItems = [{descricao:"",quantidade:1,valorUnitario:0}];
 let editingQuoteId = null;
 let editingIssuerId = null;
 let editingClientId = null;
 let lastPreviewHtml = "";
 
-// ---------- render lists ----------
+// render lists
 function renderIssuers(){
   if (!issuerList || !selectIssuer) return;
   issuerList.innerHTML = "";
@@ -150,7 +145,8 @@ function renderQuotes(){
         <div style="color:var(--muted);font-size:13px">${escapeHtml(issuer.name||'—')} → ${escapeHtml(client.name||'—')} • ${new Date(q.createdAt).toLocaleDateString()}</div>
       </div>
       <div class="quote-actions">
-        <button class="view-quote" data-id="${q.id}">Abrir</button>
+        <button class="view-quote" data-id="${q.id}">Visualizar / Imprimir</button>
+        <button class="export-quote" data-id="${q.id}">Exportar Word</button>
         <button class="edit-quote" data-id="${q.id}">Editar</button>
         <button class="del-quote" data-id="${q.id}">Excluir</button>
       </div>`;
@@ -159,7 +155,7 @@ function renderQuotes(){
   attachQuoteListListeners();
 }
 
-// ---------- items rendering ----------
+// items rendering
 function renderItems(items=[]){
   if (!itemsBody) return;
   itemsBody.innerHTML = "";
@@ -175,7 +171,6 @@ function renderItems(items=[]){
     `;
     itemsBody.appendChild(tr);
 
-    // per-row listeners
     const inputs = tr.querySelectorAll("input");
     inputs.forEach(inp => {
       inp.addEventListener("input", (e) => {
@@ -212,7 +207,7 @@ function recalcTotals(){
   return {subtotal,total};
 }
 
-// ---------- Issuer / Client submit (create or update) ----------
+// issuer/client submit
 issuerForm && issuerForm.addEventListener("submit", (e)=>{
   e.preventDefault();
   const name = (issuerName && issuerName.value || "").trim();
@@ -267,7 +262,7 @@ clientForm && clientForm.addEventListener("submit", (e)=>{
   renderClients(); renderQuotes();
 });
 
-// ---------- lists: edit/delete handlers ----------
+// lists: edit/delete handlers
 issuerList && issuerList.addEventListener("click", (e) => {
   if (e.target.classList.contains("del-issuer")) {
     const id = e.target.dataset.id;
@@ -310,7 +305,6 @@ clientList && clientList.addEventListener("click", (e) => {
   }
 });
 
-// cancel issuer/client edit
 issuerCancelBtn && issuerCancelBtn.addEventListener("click", () => {
   editingIssuerId = null; issuerForm.reset();
   issuerSubmitBtn.textContent = "Adicionar emissor";
@@ -322,7 +316,7 @@ clientCancelBtn && clientCancelBtn.addEventListener("click", () => {
   clientCancelBtn.style.display = "none";
 });
 
-// ---------- ADD ITEM ----------
+// add item
 if (addItemBtn) {
   addItemBtn.addEventListener("click", (e) => {
     e.preventDefault();
@@ -336,13 +330,13 @@ if (addItemBtn) {
   });
 }
 
-// ---------- helper: check duplicate numero for same issuer ----------
+// helper: check duplicate numero for same issuer
 function existsSameNumberForIssuer(numero, issuerId, excludeQuoteId = null){
   if (!numero) return false;
   return store.quotes.some(q => q.numero === numero && q.issuerId === issuerId && q.id !== excludeQuoteId);
 }
 
-// ---------- create/update quote ----------
+// save/update quote
 saveQuoteBtn && saveQuoteBtn.addEventListener("click", ()=>{
   const issuerId = selectIssuer && selectIssuer.value;
   const clientId = selectClient && selectClient.value;
@@ -358,12 +352,10 @@ saveQuoteBtn && saveQuoteBtn.addEventListener("click", ()=>{
 
   // VALIDATION: block only when same numero AND same issuer
   if (editingQuoteId) {
-    // updating: if another quote (different id) has same numero + same issuer -> block
     if (existsSameNumberForIssuer(numeroValue, issuerId, editingQuoteId)) {
       return alert("Já existe um orçamento com esse número para o mesmo emissor. Escolha outro número ou altere o emissor.");
     }
   } else {
-    // creating: if any existing quote has same numero + same issuer -> block
     if (existsSameNumberForIssuer(numeroValue, issuerId, null)) {
       return alert("Já existe um orçamento com esse número para o mesmo emissor. Escolha outro número ou altere o emissor.");
     }
@@ -405,7 +397,6 @@ saveQuoteBtn && saveQuoteBtn.addEventListener("click", ()=>{
   alert(`Orçamento salvo! Nº: ${q.numero}`);
 });
 
-// editing helpers for quotes
 function startEditMode(quoteId) {
   const q = store.quotes.find(x => x.id === quoteId);
   if (!q) return alert("Orçamento não encontrado.");
@@ -433,12 +424,7 @@ cancelEditBtn && cancelEditBtn.addEventListener("click", (e)=>{
   renderItems(currentItems);
 });
 
-// ---------- preview / print ----------
-previewBtn && previewBtn.addEventListener("click", ()=>{
-  const last = store.quotes[store.quotes.length-1];
-  if (!last) return alert("Nenhum orçamento salvo ainda. Salve primeiro.");
-  openPreview(last.id);
-});
+// preview / print now per-quote (openPreview called from quote list)
 function openPreview(id){
   const q = store.quotes.find(x=>x.id===id); if (!q) return alert("Orçamento não encontrado");
   const issuer = store.issuers.find(i=>i.id===q.issuerId)||{};
@@ -465,7 +451,7 @@ printBtn && printBtn.addEventListener("click", ()=>{
   w.document.close(); w.focus(); setTimeout(()=>w.print(), 300);
 });
 
-// ---------- export CSV (Excel) - exports ALL quotes ----------
+// export CSV (all quotes)
 exportCsvBtn && exportCsvBtn.addEventListener("click", ()=>{
   if (!store.quotes.length) return alert("Nenhum orçamento salvo para exportar.");
   const rows = [];
@@ -495,9 +481,9 @@ exportCsvBtn && exportCsvBtn.addEventListener("click", ()=>{
   URL.revokeObjectURL(url);
 });
 
-// ---------- export Word (DOC) - exports current preview ----------
+// export Word: exports current preview (keeps existing button behavior)
 exportDocBtn && exportDocBtn.addEventListener("click", ()=>{
-  if (!lastPreviewHtml) return alert("Abra um orçamento (Abrir) primeiro para exportar para Word.");
+  if (!lastPreviewHtml) return alert("Abra um orçamento (Visualizar / Imprimir) primeiro para exportar para Word.");
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>Orçamento</title></head><body>${lastPreviewHtml}</body></html>`;
   const blob = new Blob([html], { type: "application/msword" });
   const url = URL.createObjectURL(blob);
@@ -505,7 +491,20 @@ exportDocBtn && exportDocBtn.addEventListener("click", ()=>{
   URL.revokeObjectURL(url);
 });
 
-// ---------- quote HTML (preview) ----------
+// export a specific quote to Word (called from list)
+function exportQuoteDoc(quoteId){
+  const q = store.quotes.find(x=>x.id===quoteId); if (!q) return alert("Orçamento não encontrado");
+  const issuer = store.issuers.find(i=>i.id===q.issuerId)||{};
+  const client = store.clients.find(c=>c.id===q.clientId)||{};
+  const html = renderQuoteHtml(q, issuer, client);
+  const doc = `<!doctype html><html><head><meta charset="utf-8"><title>Orçamento</title></head><body>${html}</body></html>`;
+  const blob = new Blob([doc], { type: "application/msword" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `orcamento-${q.numero || q.id}.doc`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// quote HTML (preview)
 function renderQuoteHtml(q, issuer, client){
   const dateOnly = new Date(q.createdAt).toLocaleDateString('pt-BR');
   const issuerContact = `${issuer.address ? escapeHtml(issuer.address) + '<br/>' : ''}${issuer.phone ? 'Tel: ' + escapeHtml(issuer.phone) : ''}`;
@@ -555,11 +554,14 @@ function renderQuoteHtml(q, issuer, client){
   `;
 }
 
-// ---------- quote list actions ----------
+// attach quote list listeners (view/export/edit/delete)
 function attachQuoteListListeners(){
   if (!quotesList) return;
   quotesList.querySelectorAll(".view-quote").forEach(btn=>{
     btn.addEventListener("click",(e)=> openPreview(e.target.dataset.id));
+  });
+  quotesList.querySelectorAll(".export-quote").forEach(btn=>{
+    btn.addEventListener("click",(e)=> exportQuoteDoc(e.target.dataset.id));
   });
   quotesList.querySelectorAll(".edit-quote").forEach(btn=>{
     btn.addEventListener("click",(e)=> startEditMode(e.target.dataset.id) );
@@ -573,11 +575,10 @@ function attachQuoteListListeners(){
   });
 }
 
-// ---------- initial render ----------
+// initial render
 function renderAll(){ renderIssuers(); renderClients(); renderQuotes(); renderItems(currentItems); }
 renderAll();
 
-// ---------- helpers ----------
 function escapeHtml(str){
   if (str === null || str === undefined) return "";
   return String(str)

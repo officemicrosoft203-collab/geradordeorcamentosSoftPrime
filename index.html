@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gerador de Orçamentos SoftPrime</title>
+  <title>Gerador de Orçamentos</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -22,7 +22,7 @@
       <div>
         <h3>Emissor</h3>
         <form id="issuerForm" class="form-issuer">
-          <input id="issuerName" placeholder="Nome / Razão Social" required />
+          <input id="issuerName" placeholder="Razão social" required />
           <input id="issuerCnpjCpf" placeholder="CNPJ / CPF" />
           <input id="issuerAddress" placeholder="Endereço (rua, nº, bairro, cidade)" />
           <input id="issuerPhone" placeholder="Telefone" />
@@ -37,7 +37,7 @@
       <div>
         <h3>Cliente</h3>
         <form id="clientForm" class="form-issuer">
-          <input id="clientName" placeholder="Nome / Razão Social" required />
+          <input id="clientName" placeholder="Nome / Empresa" required />
           <input id="clientCnpjCpf" placeholder="CNPJ / CPF" />
           <input id="clientAddress" placeholder="Endereço (rua, nº, bairro, cidade)" />
           <input id="clientPhone" placeholder="Telefone" />
@@ -88,7 +88,6 @@
 
       <div class="row buttons">
         <button id="saveQuoteBtn" class="primary">Salvar Orçamento</button>
-        <button id="previewBtn">Visualizar / Imprimir</button>
         <button id="cancelEditBtn" style="display:none;margin-left:8px;">Cancelar Edição</button>
       </div>
     </section>
@@ -111,7 +110,7 @@
   </div>
 
   <footer class="footer">
-    © 2026 Desenvolvido por SoftPrime.
+    Dados salvos localmente no seu navegador. Faça export para backup.
   </footer>
 
   <script src="app.js"></script>
