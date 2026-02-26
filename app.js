@@ -1,4 +1,4 @@
-// app.js — movido: Visualizar/Imprimir para cada orçamento; adicionada exportação Word por orçamento
+// app.js — movido: Visualizar/Imprimir para cada orçamento; adicionada exportação Word e PDF por orçamento
 const STORE_KEY = "simple_quotes_v2";
 
 function uid(){ return Math.random().toString(36).slice(2,9); }
@@ -72,7 +72,7 @@ const cancelEditBtn = document.getElementById("cancelEditBtn");
 const quotesList = document.getElementById("quotesList");
 
 const exportCsvBtn = document.getElementById("exportCsvBtn");
-const exportDocBtn = document.getElementById("exportDocBtn"); // keeps exporting current preview (if any)
+const exportDocBtn = document.getElementById("exportDocBtn");
 
 const previewModal = document.getElementById("previewModal");
 const previewArea = document.getElementById("previewArea");
@@ -147,6 +147,7 @@ function renderQuotes(){
       <div class="quote-actions">
         <button class="view-quote" data-id="${q.id}">Visualizar / Imprimir</button>
         <button class="export-quote" data-id="${q.id}">Exportar Word</button>
+        <button class="export-pdf" data-id="${q.id}">Exportar PDF</button>
         <button class="edit-quote" data-id="${q.id}">Editar</button>
         <button class="del-quote" data-id="${q.id}">Excluir</button>
       </div>`;
@@ -504,6 +505,33 @@ function exportQuoteDoc(quoteId){
   URL.revokeObjectURL(url);
 }
 
+// export a specific quote to PDF (opens preview in new window and triggers print)
+function exportQuotePdf(quoteId){
+  const q = store.quotes.find(x=>x.id===quoteId); if (!q) return alert("Orçamento não encontrado");
+  const issuer = store.issuers.find(i=>i.id===q.issuerId)||{};
+  const client = store.clients.find(c=>c.id===q.clientId)||{};
+  const html = renderQuoteHtml(q, issuer, client);
+  const w = window.open("", "_blank");
+  w.document.write(`<html><head><meta charset="utf-8"><title>Orçamento</title><style>
+    body{font-family:Arial,Helvetica,sans-serif;padding:20px;color:#111}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{border:1px solid #ddd;padding:8px}
+    th{background:#f7f7f7}
+    .signature{margin-top:200px;display:flex;flex-direction:column;align-items:center;gap:6px}
+    .signature .sig-line{width:60%;border-top:2px solid #000;height:0}
+    .signature .sig-name{font-weight:600;font-size:0.95rem;color:#222}
+    .print-footer{margin-top:18px;font-size:0.85rem;color:#666;position:fixed;left:20px;bottom:18px}
+    </style></head><body>${html}</body></html>`);
+  w.document.close();
+  w.focus();
+  // wait a short moment then trigger print
+  setTimeout(()=> {
+    w.print();
+    // optional: do not auto-close — user may cancel print; closing can be annoying
+    // setTimeout(()=>w.close(), 500);
+  }, 300);
+}
+
 // quote HTML (preview)
 function renderQuoteHtml(q, issuer, client){
   const dateOnly = new Date(q.createdAt).toLocaleDateString('pt-BR');
@@ -562,6 +590,9 @@ function attachQuoteListListeners(){
   });
   quotesList.querySelectorAll(".export-quote").forEach(btn=>{
     btn.addEventListener("click",(e)=> exportQuoteDoc(e.target.dataset.id));
+  });
+  quotesList.querySelectorAll(".export-pdf").forEach(btn=>{
+    btn.addEventListener("click",(e)=> exportQuotePdf(e.target.dataset.id));
   });
   quotesList.querySelectorAll(".edit-quote").forEach(btn=>{
     btn.addEventListener("click",(e)=> startEditMode(e.target.dataset.id) );
