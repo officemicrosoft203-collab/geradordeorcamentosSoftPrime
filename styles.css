@@ -40,13 +40,42 @@ body{
   position:sticky;top:0;z-index:50;
 }
 .topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
-.brand{display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:16px}
+
+/* Logo: maior, não envolve texto e mostra iniciais "SP" dentro do quadrado */
 .logo{
-  width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--primary),#1dc9a1);
-  display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;
+  width:56px;
+  height:56px;
+  min-width:56px;
+  border-radius:12px;
+  background:linear-gradient(135deg,var(--primary),#1dc9a1);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:transparent;         /* oculta qualquer texto longo dentro da tag */
+  font-weight:700;
+  font-size:14px;
   box-shadow:0 6px 16px rgba(14,163,122,0.12);
+  overflow:hidden;
+  position:relative;
 }
-.title{font-weight:600;font-size:1.02rem;color:#102027}
+/* Inserimos iniciais 'SP' via CSS para ficar sempre centralizado e curto */
+.logo::after{
+  content: "SP";
+  color:#fff;
+  font-weight:800;
+  font-size:15px;
+  letter-spacing:0.5px;
+}
+
+/* Título em linha, com margem para não ser encoberto */
+.title{
+  font-weight:600;
+  font-size:1.02rem;
+  color:#102027;
+  white-space:nowrap;
+  margin-left:2px;
+}
 
 /* Top actions (export) */
 .top-actions{display:flex;gap:10px}
@@ -85,11 +114,10 @@ h4.list-title{margin:12px 0 8px 0;color:var(--muted);font-size:0.95rem}
   font-size:0.95rem;
   color:#0f1720;
   transition:box-shadow .14s, border-color .12s, transform .08s;
-  outline: none; /* remove outline do navegador */
+  outline: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  -webkit-rtl-ordering: logical;
 }
 .form-row input::placeholder{color:var(--muted-weak)}
 .form-issuer .form-row + .form-row{margin-top:6px}
@@ -101,8 +129,6 @@ h4.list-title{margin:12px 0 8px 0;color:var(--muted);font-size:0.95rem}
   transform: translateY(-1px);
   outline: none !important;
 }
-
-/* For keyboard users show an accessible ring */
 .form-row input:focus-visible, .form-row select:focus-visible{
   outline: 3px solid rgba(var(--primary-rgb),0.12);
   outline-offset: 3px;
