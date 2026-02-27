@@ -245,3 +245,23 @@ input[readonly], textarea[readonly] {
   border-color: rgba(0,0,0,0.18) !important;
   box-shadow: 0 6px 18px rgba(0,0,0,0.04) !important;
 }
+/* ===== Mostrar apenas Observações na seção "Dados do orçamento" =====
+   Mantém os inputs no DOM (para app.js), mas oculta visualmente os outros campos.
+*/
+#quoteData .form-grid > * {
+  display: none;              /* esconde tudo por padrão */
+}
+
+/* mantém visível apenas o bloco .full (Observações) */
+#quoteData .form-grid > .full {
+  display: block !important;
+}
+
+/* opcional: ajustar largura do textarea de observações para preencher bem */
+#quoteData .form-grid > .full textarea,
+#quoteData .form-grid > .full input {
+  width: 100% !important;
+}
+
+/* reduz espaçamento vertical para que não fique muito espaço em branco */
+#quoteData { padding-bottom: 12px; }
