@@ -1,118 +1,62 @@
-/* Visual clean e próximo ao modelo que você gostou
-   - caixas com borda fina
-   - inputs claros e definidos
-   - botão azul grande no final
-   - mantém os IDs do app.js
+/* ===== overrides: bordas visíveis por padrão para todos os inputs/selects/textareas =====
+   Colar este bloco AO FINAL do styles.css existente.
 */
 
 :root{
-  --bg:#f6f8fb;
-  --card:#ffffff;
-  --muted:#6b7278;
-  --muted-weak:#a7adb3;
-  --border: rgba(20,30,40,0.07);
-  --primary:#1976d2; /* azul principal */
-  --radius:6px;
-  --shadow:0 6px 18px rgba(20,30,40,0.04);
-  --wrap:960px;
-  --gap:12px;
+  --input-border-default: #cfd8d7;   /* cor fixa das bordas em estado normal */
+  --input-border-strong: rgba(16,32,39,0.18);
+  --input-bg: #ffffff;
+  --input-radius: 8px;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial;
-  background:linear-gradient(180deg,#fbfcfe 0%,var(--bg) 100%);
-  color:#0f1720;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  line-height:1.45;
+/* Aplica borda visível por padrão a todos os controles de formulário */
+input, textarea, select,
+.form-grid input, .form-grid textarea, .form-grid select,
+.form-row input, .form-row textarea, .form-row select,
+.items-table input {
+  border: 1px solid var(--input-border-default) !important;
+  background: var(--input-bg) !important;
+  border-radius: var(--input-radius) !important;
+  color: #0f1720 !important;
+  transition: border-color .12s ease, box-shadow .12s ease, transform .06s ease;
 }
 
-/* container */
-.wrap{max-width:var(--wrap);margin:28px auto;padding:0 18px}
-
-/* header */
-.header{background:transparent;border-bottom:1px solid rgba(10,15,20,0.02)}
-.header-row{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
-.brand{display:flex;align-items:center;gap:14px}
-.logo{background:linear-gradient(135deg,#25a9f0,#1976d2);color:#fff;padding:10px 18px;border-radius:8px;font-weight:700}
-.site-title{font-weight:600;color:#102027}
-
-/* header actions */
-.header-actions{display:flex;gap:10px}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:#fff;color:#0f1720;font-weight:600;cursor:pointer}
-.btn-ghost{background:transparent}
-.btn-outline{background:#fff;border:1px solid var(--border)}
-.btn-primary{background:var(--primary);color:#fff;border:none;box-shadow:0 8px 22px rgba(25,118,210,0.12)}
-.btn-add{background:#fff;border:1px solid #cfe6ff;color:#0b66b0}
-
-/* cards */
-.card{background:var(--card);border-radius:8px;padding:18px;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:18px}
-.card h4{margin:0 0 12px 0;font-size:1.02rem;color:#0f1720}
-
-/* two column top */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-@media (max-width:900px){.two-col{grid-template-columns:1fr}}
-
-/* form grid */
-.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.form-grid .full{grid-column:1 / -1}
-.form-grid .half{width:100%}
-.form-grid input, .form-grid textarea, .form-grid select{
-  width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--border);background:#fff;color:#0f1720;font-size:0.95rem;
-}
-.form-grid textarea{resize:vertical}
-
-/* items table */
-.items-table{width:100%;border-collapse:collapse}
-.items-table thead th{font-weight:600;text-align:left;padding:12px 8px;color:var(--muted);border-bottom:1px solid rgba(10,15,20,0.03)}
-.items-table td{padding:10px 8px;border-bottom:1px dashed rgba(10,15,20,0.03);vertical-align:middle}
-.items-table input{padding:8px;border-radius:6px;border:1px solid var(--border)}
-
-/* row-between */
-.row-between{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
-
-/* subtotal style */
-.subtotal{color:var(--muted);font-weight:600}
-
-/* totals & controls */
-.totals{display:flex;justify-content:flex-end;gap:18px;margin-top:8px}
-.totals .total{font-weight:700;color:var(--primary)}
-
-/* big generate button */
-.generate-wrap{margin:18px 0 30px}
-.btn-generate{
-  width:100%;
-  padding:14px 18px;
-  border-radius:28px;
-  font-size:1.05rem;
-  display:block;
-  text-align:center;
-  box-shadow:0 18px 40px rgba(25,118,210,0.12);
+/* Placeholder mais perceptível */
+input::placeholder, textarea::placeholder, select option[disabled] {
+  color: #9aa6b2 !important;
+  opacity: 1;
 }
 
-/* lists */
-.list{list-style:none;padding:0;margin:0}
-.list li{padding:12px;border-radius:6px;border:1px solid var(--border);margin-bottom:10px;background:#fff;display:flex;justify-content:space-between;align-items:flex-start}
-.list li strong{display:block}
-.list li .meta{color:var(--muted);font-size:0.92rem;margin-top:6px}
+/* Quando focar: destaque verde suave (sem borda preta do navegador) */
+input:focus, textarea:focus, select:focus,
+.form-grid input:focus, .form-grid textarea:focus, .form-grid select:focus {
+  outline: none !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 8px 22px rgba(var(--primary-rgb),0.10) !important;
+  transform: translateY(-1px);
+}
 
-/* modal */
-.modal.hidden{display:none}
-.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,15,20,0.45);z-index:1200}
-.modal-box{width:100%;max-width:920px;background:#fff;border-radius:8px;padding:16px;box-shadow:0 24px 80px rgba(20,30,40,0.2);position:relative}
-.modal-close{position:absolute;right:8px;top:8px;border:none;background:transparent;font-size:20px;cursor:pointer}
+/* Garanta inputs em tabelas com a mesma aparência */
+.items-table input[type="number"], .items-table input[type="text"] {
+  background: var(--input-bg) !important;
+  border: 1px solid var(--input-border-default) !important;
+}
 
-/* footer */
-.footer{text-align:center;color:var(--muted);padding:18px 0;font-size:0.95rem}
+/* Campos desabilitados ou somente leitura — aparência levemente esmaecida */
+input[disabled], textarea[disabled], select[disabled],
+input[readonly], textarea[readonly] {
+  background: #fbfcfd !important;
+  color: #7b8388 !important;
+  border-color: rgba(10,20,30,0.04) !important;
+}
 
-/* responsive */
-@media (max-width:700px){
-  .form-grid{grid-template-columns:1fr}
-  .row-between{flex-direction:column;align-items:flex-start;gap:12px}
-  .btn-generate{border-radius:10px}
+/* Se quiser borda mais forte em labels importantes (opcional)
+   adicione a classe .highlight-field ao redor do input no HTML.
+   Exemplo: <div class="highlight-field"><input ... /></div>
+*/
+.highlight-field input,
+.highlight-field textarea,
+.highlight-field select {
+  border-color: var(--input-border-strong) !important;
+  box-shadow: 0 6px 18px rgba(10,20,30,0.04);
 }
