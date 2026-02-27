@@ -9,104 +9,152 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="wrap">
+  <header class="header">
+    <div class="wrap header-row">
       <div class="brand">
         <div class="logo">SoftPrime</div>
         <div class="site-title">Gerador de Orçamentos</div>
       </div>
-      <div class="actions">
+      <div class="header-actions">
         <button id="exportCsvBtn" class="btn btn-ghost">Exportar Excel</button>
         <button id="exportDocBtn" class="btn btn-ghost">Exportar Word</button>
       </div>
     </div>
   </header>
 
-  <main class="wrap main">
-    <!-- Emissor / Cliente -->
-    <section class="card grid-2">
+  <main class="wrap">
+    <!-- Dados do emissor / cliente (top) -->
+    <section class="card two-col">
       <div>
-        <h3>Emissor</h3>
-        <form id="issuerForm" autocomplete="off" class="form-grid">
-          <input id="issuerName" placeholder="Razão social" required>
-          <input id="issuerCnpjCpf" placeholder="CNPJ / CPF">
-          <input id="issuerAddress" placeholder="Endereço (rua, nº, bairro, cidade)">
-          <input id="issuerPhone" placeholder="Telefone">
+        <h4>Dados do emissor</h4>
+        <form id="issuerForm" class="form-grid" autocomplete="off">
+          <div class="full">
+            <input id="issuerName" placeholder="Nome / Razão social" required />
+          </div>
+          <div class="half">
+            <input id="issuerCnpjCpf" placeholder="CPF / CNPJ" />
+          </div>
+          <div class="half">
+            <input id="issuerPhone" placeholder="Telefone" />
+          </div>
+          <div class="full">
+            <textarea id="issuerAddress" placeholder="Endereço completo" rows="2"></textarea>
+          </div>
           <div class="form-actions">
-            <button id="issuerSubmitBtn" type="submit" class="btn btn-primary full">Adicionar emissor</button>
+            <button id="issuerSubmitBtn" class="btn btn-outline full" type="submit">Adicionar emissor</button>
           </div>
         </form>
-
-        <h4>Emissores</h4>
-        <ul id="issuerList" class="list"></ul>
       </div>
 
       <div>
-        <h3>Cliente</h3>
-        <form id="clientForm" autocomplete="off" class="form-grid">
-          <input id="clientName" placeholder="Nome / Empresa" required>
-          <input id="clientCnpjCpf" placeholder="CNPJ / CPF">
-          <input id="clientAddress" placeholder="Endereço (rua, nº, bairro, cidade)">
-          <input id="clientPhone" placeholder="Telefone">
+        <h4>Dados do cliente</h4>
+        <form id="clientForm" class="form-grid" autocomplete="off">
+          <div class="full">
+            <input id="clientName" placeholder="Nome / Empresa" required />
+          </div>
+          <div class="half">
+            <input id="clientCnpjCpf" placeholder="CPF / CNPJ" />
+          </div>
+          <div class="half">
+            <input id="clientPhone" placeholder="Telefone" />
+          </div>
+          <div class="full">
+            <textarea id="clientAddress" placeholder="Endereço completo" rows="2"></textarea>
+          </div>
           <div class="form-actions">
-            <button id="clientSubmitBtn" type="submit" class="btn btn-primary full">Adicionar cliente</button>
+            <button id="clientSubmitBtn" class="btn btn-outline full" type="submit">Adicionar cliente</button>
           </div>
         </form>
-
-        <h4>Clientes</h4>
-        <ul id="clientList" class="list"></ul>
       </div>
     </section>
 
-    <!-- Novo Orçamento -->
+    <!-- Itens do orçamento -->
     <section class="card">
-      <h3>Novo Orçamento</h3>
+      <h4>Itens do orçamento</h4>
 
-      <div class="row">
-        <label>
-          Emissor
-          <select id="selectIssuer"><option value="">-- selecione --</option></select>
-        </label>
-        <label>
-          Cliente
-          <select id="selectClient"><option value="">-- selecione --</option></select>
-        </label>
-        <label class="small">
-          Nº Orçamento
-          <input id="quoteNumber" placeholder="opcional">
-        </label>
-      </div>
-
-      <table class="items-table" id="itemsTable" aria-label="Itens">
+      <table class="items-table" id="itemsTable" aria-label="Itens do orçamento">
         <thead>
-          <tr><th>Descrição</th><th>Qtd</th><th>Unit.</th><th>Total</th><th></th></tr>
+          <tr>
+            <th style="width:55%">Produto / serviço</th>
+            <th style="width:12%">Qtd</th>
+            <th style="width:16%">Valor unitário (R$)</th>
+            <th style="width:12%">Total (R$)</th>
+            <th style="width:5%"></th>
+          </tr>
         </thead>
         <tbody id="itemsBody"></tbody>
       </table>
 
-      <div class="item-controls">
-        <button id="addItemBtn" class="btn btn-ghost">Adicionar item</button>
-      </div>
-
-      <div class="totals">
-        <div>Subtotal: R$ <span id="subtotal">0.00</span></div>
-        <div class="total">Total: R$ <span id="grandTotal">0.00</span></div>
-      </div>
-
-      <div class="form-actions footer-actions">
-        <button id="saveQuoteBtn" class="btn btn-primary">Salvar Orçamento</button>
-        <button id="cancelEditBtn" class="btn btn-muted" style="display:none">Cancelar Edição</button>
+      <div class="row-between">
+        <button id="addItemBtn" class="btn btn-add">+ adicionar item</button>
+        <div class="subtotal">Subtotal: <strong>R$ <span id="subtotal">0.00</span></strong></div>
       </div>
     </section>
 
+    <!-- Dados do orçamento -->
+    <section class="card">
+      <h4>Dados do orçamento</h4>
+      <div class="form-grid">
+        <div class="half">
+          <label>Número do orçamento
+            <input id="quoteNumber" placeholder="opcional" />
+          </label>
+        </div>
+        <div class="half">
+          <label>Data
+            <input id="quoteDate" type="text" placeholder="" />
+          </label>
+        </div>
+
+        <div class="half">
+          <label>Acréscimo (R$)
+            <input id="increase" />
+          </label>
+        </div>
+        <div class="half">
+          <label>Motivo do acréscimo
+            <input id="increaseReason" />
+          </label>
+        </div>
+
+        <div class="half">
+          <label>Desconto (R$)
+            <input id="discount" />
+          </label>
+        </div>
+        <div class="half">
+          <label>Motivo do desconto
+            <input id="discountReason" />
+          </label>
+        </div>
+
+        <div class="full">
+          <label>Forma de pagamento
+            <input id="paymentMethod" />
+          </label>
+        </div>
+
+        <div class="full">
+          <label>Observações
+            <textarea id="notes" rows="4"></textarea>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Botão gerar grande -->
+    <div class="generate-wrap">
+      <button id="saveQuoteBtn" class="btn btn-primary btn-generate">📄 Gerar orçamento</button>
+    </div>
+
     <!-- Orçamentos Salvos -->
     <section class="card">
-      <h3>Orçamentos Salvos</h3>
+      <h4>Orçamentos Salvos</h4>
       <ul id="quotesList" class="list"></ul>
     </section>
   </main>
 
-  <!-- Preview modal (mantém IDs usados pelo app.js) -->
+  <!-- Preview modal (mantive IDs para app.js) -->
   <div id="previewModal" class="modal hidden" aria-hidden="true">
     <div class="modal-box">
       <button id="closePreview" class="modal-close">×</button>
@@ -117,9 +165,8 @@
     </div>
   </div>
 
-  <footer class="site-footer">© Desenvolvido por SoftPrime</footer>
+  <footer class="footer">© Desenvolvido por SoftPrime</footer>
 
-  <!-- usa seu app.js existente -->
   <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
