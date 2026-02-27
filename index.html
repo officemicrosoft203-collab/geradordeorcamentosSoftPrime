@@ -92,55 +92,27 @@
     </section>
 
     <!-- Dados do orçamento -->
-    <section class="card">
-      <h4>Dados do orçamento</h4>
-      <div class="form-grid">
-        <div class="half">
-          <label>Número do orçamento
-            <input id="quoteNumber" placeholder="opcional" />
-          </label>
-        </div>
-        <div class="half">
-          <label>Data
-            <input id="quoteDate" type="text" placeholder="" />
-          </label>
-        </div>
+    <section id="quoteData" class="card">
+  <h4>Dados do orçamento</h4>
+  <div class="form-grid">
+    <div class="half">
+      <label>Número do orçamento
+        <input id="quoteNumber" placeholder="gerado automaticamente" readonly />
+      </label>
+    </div>
+    <div class="half">
+      <label>Data
+        <input id="quoteDate" placeholder="dd/mm/aaaa" readonly />
+      </label>
+    </div>
 
-        <div class="half">
-          <label>Acréscimo (R$)
-            <input id="increase" />
-          </label>
-        </div>
-        <div class="half">
-          <label>Motivo do acréscimo
-            <input id="increaseReason" />
-          </label>
-        </div>
-
-        <div class="half">
-          <label>Desconto (R$)
-            <input id="discount" />
-          </label>
-        </div>
-        <div class="half">
-          <label>Motivo do desconto
-            <input id="discountReason" />
-          </label>
-        </div>
-
-        <div class="full">
-          <label>Forma de pagamento
-            <input id="paymentMethod" />
-          </label>
-        </div>
-
-        <div class="full">
-          <label>Observações
-            <textarea id="notes" rows="4"></textarea>
-          </label>
-        </div>
-      </div>
-    </section>
+    <div class="full">
+      <label>Observações
+        <textarea id="notes" rows="4" placeholder="Observações do orçamento"></textarea>
+      </label>
+    </div>
+  </div>
+</section>
 
     <!-- Botão gerar grande -->
     <div class="generate-wrap">
