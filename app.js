@@ -62,6 +62,8 @@ const clientCancelBtn = document.getElementById("clientCancelBtn");
 const selectIssuer = document.getElementById("selectIssuer");
 const selectClient = document.getElementById("selectClient");
 const quoteNumber = document.getElementById("quoteNumber");
+const quoteDate = document.getElementById("quoteDate");   // auto-filled date
+const notes = document.getElementById("notes");           // observações
 
 const itemsBody = document.getElementById("itemsBody");
 const addItemBtn = document.getElementById("addItemBtn");
@@ -84,6 +86,22 @@ let editingQuoteId = null;
 let editingIssuerId = null;
 let editingClientId = null;
 let lastPreviewHtml = "";
+
+// --- Auto-fill helpers for Quotes (number + date) ---
+function formatDateISOtoLocal(iso){
+  if (!iso) return "";
+  return new Date(iso).toLocaleDateString('pt-BR');
+}
+
+function setDefaultQuoteFields(){
+  if (!quoteNumber || !quoteDate) return;
+  if (editingQuoteId) return; // don't overwrite when editing
+
+  const next = store.nextQuoteNumber || computeNextQuoteNumberFromQuotes(store.quotes || []);
+  quoteNumber.value = formatQuoteNumber(next);
+  quoteDate.value = new Date().toLocaleDateString('pt-BR');
+  if (notes) notes.value = "";
+}
 
 // render lists
 function renderIssuers(){
@@ -363,6 +381,8 @@ saveQuoteBtn && saveQuoteBtn.addEventListener("click", ()=>{
     }
   }
 
+  const notesVal = (notes && notes.value || "").trim();
+
   if (editingQuoteId) {
     const q = store.quotes.find(x => x.id === editingQuoteId);
     if (!q) return alert("Orçamento não encontrado para atualizar.");
@@ -372,6 +392,7 @@ saveQuoteBtn && saveQuoteBtn.addEventListener("click", ()=>{
     q.items = JSON.parse(JSON.stringify(currentItems));
     q.subtotal = totals.subtotal;
     q.total = totals.total;
+    q.notes = notesVal;
     q.updatedAt = new Date().toISOString();
     saveStore(store);
     alert(`Orçamento atualizado! Nº: ${q.numero}`);
@@ -388,17 +409,21 @@ saveQuoteBtn && saveQuoteBtn.addEventListener("click", ()=>{
     numero: numeroValue || null,
     items: JSON.parse(JSON.stringify(currentItems)),
     subtotal: totals.subtotal, total: totals.total,
+    notes: notesVal,
     createdAt: new Date().toISOString()
   };
   store.quotes.push(q);
   if (generatedNumber) store.nextQuoteNumber = (store.nextQuoteNumber || 1) + 1;
   saveStore(store);
   currentItems = [{descricao:"",quantidade:1,valorUnitario:0}];
-  if (quoteNumber) quoteNumber.value = "";
+  // reset form items
   renderItems(currentItems); renderQuotes();
+  // set defaults for next quote
+  setDefaultQuoteFields();
   alert(`Orçamento salvo! Nº: ${q.numero}`);
 });
 
+// edit / end edit
 function startEditMode(quoteId) {
   const q = store.quotes.find(x => x.id === quoteId);
   if (!q) return alert("Orçamento não encontrado.");
@@ -406,6 +431,9 @@ function startEditMode(quoteId) {
   selectIssuer.value = q.issuerId || "";
   selectClient.value = q.clientId || "";
   quoteNumber.value = q.numero || "";
+  // show the quote date for editing (from createdAt)
+  if (quoteDate) quoteDate.value = formatDateISOtoLocal(q.createdAt || q.updatedAt || new Date().toISOString());
+  if (notes) notes.value = q.notes || "";
   currentItems = JSON.parse(JSON.stringify(q.items || [{descricao:"",quantidade:1,valorUnitario:0}]));
   renderItems(currentItems);
   saveQuoteBtn.textContent = "Atualizar Orçamento";
@@ -416,7 +444,9 @@ function endEditMode() {
   editingQuoteId = null;
   saveQuoteBtn.textContent = "Salvar Orçamento";
   cancelEditBtn.style.display = "none";
-  quoteNumber && (quoteNumber.value = "");
+  // restore defaults for new quote
+  setDefaultQuoteFields();
+  if (notes) notes.value = "";
 }
 cancelEditBtn && cancelEditBtn.addEventListener("click", (e)=>{
   e.preventDefault();
@@ -457,7 +487,7 @@ printBtn && printBtn.addEventListener("click", ()=>{
 exportCsvBtn && exportCsvBtn.addEventListener("click", ()=>{
   if (!store.quotes.length) return alert("Nenhum orçamento salvo para exportar.");
   const rows = [];
-  const header = ["numero","issuer_name","issuer_cnpjcpf","client_name","client_cnpjcpf","created_at","subtotal","total","items_json"];
+  const header = ["numero","issuer_name","issuer_cnpjcpf","client_name","client_cnpjcpf","created_at","subtotal","total","items_json","notes"];
   rows.push(header.join(","));
   store.quotes.forEach(q => {
     const issuer = store.issuers.find(i=>i.id===q.issuerId) || {};
@@ -472,7 +502,8 @@ exportCsvBtn && exportCsvBtn.addEventListener("click", ()=>{
       `"${(q.createdAt||"")}"`,
       `"${money(q.subtotal||0)}"`,
       `"${money(q.total||0)}"`,
-      `"${itemsJson.replace(/"/g,'""')}"`
+      `"${itemsJson.replace(/"/g,'""')}"`,
+      `"${(q.notes||"").replace(/"/g,'""')}"`
     ];
     rows.push(row.join(","));
   });
@@ -570,6 +601,8 @@ function renderQuoteHtml(q, issuer, client){
         <div style="font-weight:700;font-size:1.1em">Total: R$ ${money(q.total)}</div>
       </div>
 
+      ${q.notes ? `<div style="margin-top:18px;"><strong>Observações:</strong><div style="margin-top:6px">${escapeHtml(q.notes)}</div></div>` : ''}
+
       <div class="signature" style="margin-top:200px;display:flex;flex-direction:column;align-items:center;gap:6px">
         <div class="sig-line" style="width:60%;border-top:2px solid #000;height:0"></div>
         <div class="sig-name" style="font-weight:600;font-size:0.95rem;color:#222">${escapeHtml(issuer.name || '')}</div>
@@ -607,6 +640,7 @@ function attachQuoteListListeners(){
 // initial render
 function renderAll(){ renderIssuers(); renderClients(); renderQuotes(); renderItems(currentItems); }
 renderAll();
+setDefaultQuoteFields();
 
 function escapeHtml(str){
   if (str === null || str === undefined) return "";
