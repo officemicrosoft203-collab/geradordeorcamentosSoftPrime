@@ -12,6 +12,8 @@
   --muted-weak:#a7adb3;
   --border: rgba(20,30,40,0.07);
   --primary:#1976d2; /* azul principal */
+  --primary-dark:#145ea8;
+  --primary-rgb: 25,118,210; /* usado para sombras */
   --radius:6px;
   --shadow:0 6px 18px rgba(20,30,40,0.04);
   --wrap:960px;
@@ -78,6 +80,7 @@ body{
 
 /* subtotal style */
 .subtotal{color:var(--muted);font-weight:600}
+.total{font-weight:700;color:var(--primary)}
 
 /* totals & controls */
 .totals{display:flex;justify-content:flex-end;gap:18px;margin-top:8px}
@@ -116,9 +119,8 @@ body{
   .row-between{flex-direction:column;align-items:flex-start;gap:12px}
   .btn-generate{border-radius:10px}
 }
-/* ===== overrides: bordas visíveis por padrão para todos os inputs/selects/textareas =====
-   Colar este bloco AO FINAL do styles.css existente.
-*/
+
+/* ===== overrides: bordas visíveis por padrão para todos os inputs/selects/textareas ===== */
 
 :root{
   --input-border-default: #cfd8d7;   /* cor fixa das bordas em estado normal */
@@ -145,7 +147,7 @@ input::placeholder, textarea::placeholder, select option[disabled] {
   opacity: 1;
 }
 
-/* Quando focar: destaque verde suave (sem borda preta do navegador) */
+/* Quando focar: destaque azul suave (sem borda preta do navegador) */
 input:focus, textarea:focus, select:focus,
 .form-grid input:focus, .form-grid textarea:focus, .form-grid select:focus {
   outline: none !important;
@@ -168,100 +170,28 @@ input[readonly], textarea[readonly] {
   border-color: rgba(10,20,30,0.04) !important;
 }
 
-/* Se quiser borda mais forte em labels importantes (opcional)
-   adicione a classe .highlight-field ao redor do input no HTML.
-   Exemplo: <div class="highlight-field"><input ... /></div>
-*/
-.highlight-field input,
-.highlight-field textarea,
-.highlight-field select {
-  border-color: var(--input-border-strong) !important;
-  box-shadow: 0 6px 18px rgba(10,20,30,0.04);
-}
-/* ===== Ajustes: textos pretos + alinhar "Total (R$)" ===== */
+/* Cabeçalhos e alinhamentos da tabela de itens */
+.items-table thead th { white-space: nowrap; }
+.items-table thead th:nth-child(4), .items-table tbody td:nth-child(4) { text-align:right; white-space:nowrap; }
+.items-table td.item-total { text-align:right; }
 
-/* 1) textos de inputs/textarea/select (conteúdo) mais escuros */
-.form-grid input,
-.form-grid textarea,
-.form-grid select,
-.form-row input,
-.form-row textarea,
-.form-row select,
-.items-table input,
-.items-table td {
-  color: #0b0b0b !important;       /* texto interno preto */
-}
-
-/* 2) placeholder também mais escuro para melhor legibilidade */
-.form-grid input::placeholder,
-.form-grid textarea::placeholder,
-.form-row input::placeholder,
-.items-table input::placeholder {
-  color: #6b6b6b !important;       /* placeholder escuro (mas ainda diferenciado do conteúdo) */
-  opacity: 1;
-}
-
-/* 3) cabeçalhos e títulos das seções em preto */
-.card h4,
-.items-table thead th,
-.row label,
-.list li strong {
-  color: #0b0b0b !important;
-}
-
-/* 4) impedir quebra na coluna dos headers (evita "Total" em cima e "(R$)" embaixo) */
-.items-table thead th {
-  white-space: nowrap;
-  color: #0b0b0b;
-  font-weight: 700;
-}
-
-/* 5) Alinhar especificamente a coluna "Total (R$)" à direita (ajusta índice se necessário) */
-.items-table thead th:nth-child(4),
-.items-table tbody td:nth-child(4) {
-  text-align: right;
-  white-space: nowrap;
-}
-
-/* 6) garantir que o total mostrado na linha (ex.: "R$ 0.00") fique à direita e não quebre */
-.items-table td.item-total,
-.items-table td:nth-child(4) {
-  text-align: right;
-  white-space: nowrap;
-}
-
-/* 7) subtotais e totais finais alinhados à direita */
-.subtotal,
-.totals .total,
-.totals-row .grand {
-  text-align: right;
-}
-
-/* 8) se quiser borda mais visível (opcional) em labels/inputs importantes,
-   adicione .highlight-field ao wrapper no HTML; mantive regra pronta */
-.highlight-field input,
-.highlight-field textarea,
-.highlight-field select {
-  border-color: rgba(0,0,0,0.18) !important;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.04) !important;
-}
-/* ===== Mostrar apenas Observações na seção "Dados do orçamento" =====
-   Mantém os inputs no DOM (para app.js), mas oculta visualmente os outros campos.
-*/
-#quoteData .form-grid > * {
-  display: none;              /* esconde tudo por padrão */
-}
-
-/* mantém visível apenas o bloco .full (Observações) */
-#quoteData .form-grid > .full {
-  display: block !important;
-}
-
-/* opcional: ajustar largura do textarea de observações para preencher bem */
-#quoteData .form-grid > .full textarea,
-#quoteData .form-grid > .full input {
+/* Ajuste para o campo descrição do item (altura e padding) */
+.items-table td input[data-field="descricao"] {
   width: 100% !important;
+  height: 44px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(10,20,30,0.12) !important;
+  background: #ffffff !important;
+  color: #0b0b0b !important;
+  font-size: 0.95rem;
+  box-shadow: none !important;
+  outline: none !important;
 }
+.items-table td input[data-field="descricao"]::placeholder { color: #8f98a1 !important; opacity:1; }
 
-/* reduz espaçamento vertical para que não fique muito espaço em branco */
+/* Mostrar apenas Observações na seção "Dados do orçamento" (já mantido no HTML) */
+#quoteData .form-grid > * { display: none; }
+#quoteData .form-grid > .full { display: block !important; }
+#quoteData .form-grid > .full textarea, #quoteData .form-grid > .full input { width:100% !important; }
 #quoteData { padding-bottom: 12px; }

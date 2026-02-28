@@ -68,51 +68,69 @@
       </div>
     </section>
 
-    <!-- Itens do orçamento -->
+    <!-- Novo Orçamento (seletor Emissor/Cliente) -->
     <section class="card">
-      <h4>Itens do orçamento</h4>
+      <h4>Novo Orçamento</h4>
+      <div class="row" style="gap:18px;margin-bottom:12px;">
+        <label style="flex:1">
+          Emissor
+          <select id="selectIssuer"><option value="">-- selecione --</option></select>
+        </label>
+        <label style="flex:1">
+          Cliente
+          <select id="selectClient"><option value="">-- selecione --</option></select>
+        </label>
+      </div>
 
-      <table class="items-table" id="itemsTable" aria-label="Itens do orçamento">
-        <thead>
-          <tr>
-            <th style="width:55%">Produto / serviço</th>
-            <th style="width:12%">Qtd</th>
-            <th style="width:16%">Valor unitário (R$)</th>
-            <th style="width:12%">Total (R$)</th>
-            <th style="width:5%"></th>
-          </tr>
-        </thead>
-        <tbody id="itemsBody"></tbody>
-      </table>
+      <!-- Itens do orçamento -->
+      <div class="items-wrap">
+        <table class="items-table" id="itemsTable" aria-label="Itens do orçamento">
+          <thead>
+            <tr>
+              <th style="width:55%">Descrição</th>
+              <th style="width:12%">Qtd</th>
+              <th style="width:16%">Unit. (R$)</th>
+              <th style="width:12%">Total (R$)</th>
+              <th style="width:5%"></th>
+            </tr>
+          </thead>
+          <tbody id="itemsBody"></tbody>
+        </table>
 
-      <div class="row-between">
-        <button id="addItemBtn" class="btn btn-add">+ adicionar item</button>
-        <div class=><strong><span id=></span></strong></div>
+        <div class="row-between" style="margin-top:12px;align-items:center;">
+          <div>
+            <button id="addItemBtn" class="btn btn-add">+ adicionar item</button>
+          </div>
+          <div style="display:flex;gap:18px;align-items:center;">
+            <div class="subtotal">Subtotal: R$ <strong><span id="subtotal">0.00</span></strong></div>
+            <div class="total">Total: R$ <strong><span id="grandTotal">0.00</span></strong></div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Dados do orçamento -->
+    <!-- Dados do orçamento (apenas número, data e observações) -->
     <section id="quoteData" class="card">
-  <h4>Dados do orçamento</h4>
-  <div class="form-grid">
-    <div class="half">
-      <label>Número do orçamento
-        <input id="quoteNumber" placeholder="gerado automaticamente" readonly />
-      </label>
-    </div>
-    <div class="half">
-      <label>Data
-        <input id="quoteDate" placeholder="dd/mm/aaaa" readonly />
-      </label>
-    </div>
+      <h4>Dados do orçamento</h4>
+      <div class="form-grid">
+        <div class="half">
+          <label>Número do orçamento
+            <input id="quoteNumber" placeholder="gerado automaticamente" readonly />
+          </label>
+        </div>
+        <div class="half">
+          <label>Data
+            <input id="quoteDate" placeholder="dd/mm/aaaa" readonly />
+          </label>
+        </div>
 
-    <div class="full">
-      <label>Observações
-        <textarea id="notes" rows="4" placeholder=></textarea>
-      </label>
-    </div>
-  </div>
-</section>
+        <div class="full">
+          <label>Observações
+            <textarea id="notes" rows="4" placeholder="Observações do orçamento (opcional)"></textarea>
+          </label>
+        </div>
+      </div>
+    </section>
 
     <!-- Botão gerar grande -->
     <div class="generate-wrap">

@@ -1,7 +1,7 @@
-# netlify.toml — site estático sem build
+# Netlify config — build gera arquivos em /public e public será publicado
 [build]
-  publish = "."
-  command = ""   # vazio = sem build
+  command = "npm run build"
+  publish = "public"
 
 [context.production.environment]
   NODE_ENV = "production"
