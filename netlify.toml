@@ -1,0 +1,7 @@
+# netlify.toml — site estático sem build
+[build]
+  publish = "."
+  command = ""   # vazio = sem build
+
+[context.production.environment]
+  NODE_ENV = "production"
