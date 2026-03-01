@@ -1,13 +1,7 @@
-// config.js - Configurações do Supabase (gerado automaticamente)
+// config.js - Configurações do Supabase
 
-// Tenta pegar das variáveis de ambiente primeiro (build time)
-const SUPABASE_URL = typeof process !== 'undefined' && process.env && process.env.SUPABASE_URL 
-  ? process.env.SUPABASE_URL 
-  : "https://eyxydyhpdahkplapitaut.supabase.co";
-
-const SUPABASE_ANON_KEY = typeof process !== 'undefined' && process.env && process.env.SUPABASE_ANON_KEY
-  ? process.env.SUPABASE_ANON_KEY
-  : "sb_publishable_7V1-f16E8oOXGge7Wnqtvg_ARVGDj_0";
+const SUPABASE_URL = "https://eyxydyhpdahkplapitaut.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5eHlkeWhwZGFoa3BsYXBpdGF1dCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzQwMTg2NzQ4LCJleHAiOjIwNTU3NjI3NDh9.COLE_A_PARTE_FINAL_DA_SUA_CHAVE_AQUI";
 
 // Expõe para uso global
 window.SUPABASE_URL = SUPABASE_URL;
@@ -15,14 +9,4 @@ window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 
 console.log('✅ Config carregado');
 console.log('🔗 URL:', SUPABASE_URL);
-console.log('🔑 Key:', SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== "" ? 'Configurada ✅' : '❌ VAZIA!');
-
-// Cria cliente Supabase e expõe em window.sb para o app (no navegador)
-if (typeof supabase !== "undefined" && typeof window !== "undefined") {
-  try {
-    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('✅ Cliente Supabase criado');
-  } catch (error) {
-    console.error('❌ Erro ao criar cliente Supabase:', error);
-  }
-}
+console.log('🔑 Key:', SUPABASE_ANON_KEY ? 'Configurada ✅' : '❌ VAZIA!');
