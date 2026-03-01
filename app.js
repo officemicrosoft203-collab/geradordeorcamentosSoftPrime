@@ -1,6 +1,6 @@
 // app.js — Gerador de Orçamentos SoftPrime
 // Sistema completo com localStorage, validações e exportações
-// ATUALIZADO: Permite números duplicados para CNPJ diferentes + edição de número
+// ATUALIZADO: Excel formatado + Word com assinatura + Visualizar/Imprimir
 
 const STORE_KEY = "softprime_quotes_v2";
 
@@ -109,6 +109,11 @@ function escapeHtml(str){
     .replace(/'/g, '&#039;');
 }
 
+function escapeCsv(str){
+  if (str === null || str === undefined) return "";
+  return String(str).replace(/"/g, '""');
+}
+
 function formatDateISOtoLocal(iso){
   if (!iso) return "";
   return new Date(iso).toLocaleDateString('pt-BR');
@@ -215,7 +220,7 @@ function renderQuotes(){
         </div>
       </div>
       <div class="quote-actions">
-        <button class="btn btn-outline view-quote" data-id="${q.id}">����️ Visualizar</button>
+        <button class="btn btn-outline view-quote" data-id="${q.id}">👁️ Visualizar/Imprimir</button>
         <button class="btn btn-outline export-quote" data-id="${q.id}">📄 Word</button>
         <button class="btn btn-outline export-pdf" data-id="${q.id}">📑 PDF</button>
         <button class="btn btn-outline edit-quote" data-id="${q.id}">✏️ Editar</button>
@@ -509,7 +514,6 @@ if (addItemBtn) {
 }
 
 // ========== QUOTE HANDLERS ==========
-// ATUALIZADO: Verifica duplicatas apenas para o MESMO emissor
 function existsSameNumberForIssuer(numero, issuerId, excludeQuoteId = null){
   if (!numero) return false;
   return (store.quotes || []).some(q => 
@@ -530,7 +534,6 @@ if (saveQuoteBtn) {
         return;
       }
 
-      // Validar se há pelo menos um item com descrição
       const validItems = currentItems.filter(it => (it.descricao || "").trim() !== "");
       if (validItems.length === 0) {
         showNotification("Adicione pelo menos um item com descrição", "error");
@@ -542,13 +545,11 @@ if (saveQuoteBtn) {
       let numeroValue = (quoteNumber && quoteNumber.value || "").trim();
       let generatedNumber = false;
       
-      // Se não houver número ou estiver em branco, gera automaticamente
       if (!numeroValue) {
         numeroValue = formatQuoteNumber(store.nextQuoteNumber || computeNextQuoteNumberFromQuotes(store.quotes));
         generatedNumber = true;
       }
 
-      // IMPORTANTE: Verifica duplicata apenas para o MESMO emissor
       if (editingQuoteId) {
         if (existsSameNumberForIssuer(numeroValue, issuerId, editingQuoteId)) {
           showNotification("Já existe um orçamento com esse número para o mesmo emissor", "error");
@@ -600,7 +601,6 @@ if (saveQuoteBtn) {
       
       store.quotes.push(q);
       
-      // Só incrementa se foi gerado automaticamente
       if (generatedNumber) {
         store.nextQuoteNumber = (store.nextQuoteNumber || 1) + 1;
       }
@@ -636,10 +636,9 @@ function startEditMode(quoteId) {
   if (selectIssuer) selectIssuer.value = q.issuerId || "";
   if (selectClient) selectClient.value = q.clientId || "";
   
-  // IMPORTANTE: Permite edição do número do orçamento
   if (quoteNumber) {
     quoteNumber.value = q.numero || "";
-    quoteNumber.removeAttribute("readonly"); // Remove o readonly para permitir edição
+    quoteNumber.removeAttribute("readonly");
   }
   
   if (quoteDate) quoteDate.value = formatDateISOtoLocal(q.createdAt || q.updatedAt || new Date().toISOString());
@@ -660,7 +659,6 @@ function endEditMode() {
   if (saveQuoteBtn) saveQuoteBtn.textContent = "📄 Gerar Orçamento";
   if (cancelEditBtn) cancelEditBtn.style.display = "none";
   
-  // Restaura o readonly no campo de número
   if (quoteNumber) quoteNumber.setAttribute("readonly", "true");
   
   setDefaultQuoteFields();
@@ -738,7 +736,7 @@ if (printBtn) {
   });
 }
 
-// ========== EXPORT FUNCTIONS ==========
+// ========== EXPORT EXCEL (CSV FORMATADO) ==========
 if (exportCsvBtn) {
   exportCsvBtn.addEventListener("click", ()=>{
     try {
@@ -748,26 +746,36 @@ if (exportCsvBtn) {
       }
       
       const rows = [];
-      const header = ["numero","issuer_name","issuer_cnpjcpf","client_name","client_cnpjcpf","created_at","subtotal","total","items_json","notes"];
-      rows.push(header.join(","));
       
+      // Cabeçalho formatado
+      rows.push([
+        "Número do Orçamento",
+        "Emissor",
+        "CNPJ/CPF Emissor",
+        "Cliente",
+        "CNPJ/CPF Cliente",
+        "Data",
+        "Subtotal (R$)",
+        "Total (R$)",
+        "Observações"
+      ].map(h => `"${h}"`).join(","));
+      
+      // Dados dos orçamentos
       store.quotes.forEach(q => {
         const issuer = store.issuers.find(i=>i.id===q.issuerId) || {};
         const client = store.clients.find(c=>c.id===q.clientId) || {};
-        const itemsJson = JSON.stringify(q.items || []);
-        const row = [
-          `"${(q.numero||"")}"`,
-          `"${(issuer.name||"")}"`,
-          `"${(issuer.cnpjCpf||"")}"`,
-          `"${(client.name||"")}"`,
-          `"${(client.cnpjCpf||"")}"`,
-          `"${(q.createdAt||"")}"`,
-          `"${money(q.subtotal||0)}"`,
-          `"${money(q.total||0)}"`,
-          `"${itemsJson.replace(/"/g,'""')}"`,
-          `"${(q.notes||"").replace(/"/g,'""')}"`
-        ];
-        rows.push(row.join(","));
+        
+        rows.push([
+          q.numero || "",
+          issuer.name || "",
+          issuer.cnpjCpf || "",
+          client.name || "",
+          client.cnpjCpf || "",
+          formatDateISOtoLocal(q.createdAt),
+          money(q.subtotal || 0),
+          money(q.total || 0),
+          (q.notes || "").substring(0, 100) // Limita observações a 100 caracteres
+        ].map(v => `"${escapeCsv(v)}"`).join(","));
       });
       
       const csv = rows.join("\n");
@@ -775,7 +783,7 @@ if (exportCsvBtn) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); 
       a.href = url; 
-      a.download = `orcamentos_${new Date().getTime()}.csv`; 
+      a.download = `orcamentos_softprime_${new Date().toISOString().slice(0,10)}.csv`; 
       a.click();
       URL.revokeObjectURL(url);
       
@@ -787,20 +795,39 @@ if (exportCsvBtn) {
   });
 }
 
+// ========== EXPORT WORD (COM ASSINATURA) ==========
 if (exportDocBtn) {
   exportDocBtn.addEventListener("click", ()=>{
     try {
       if (!lastPreviewHtml) {
-        showNotification("Abra um orçamento primeiro para exportar", "info");
+        showNotification("Abra um orçamento primeiro (Visualizar/Imprimir) para exportar", "info");
         return;
       }
       
-      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Orçamento</title></head><body>${lastPreviewHtml}</body></html>`;
+      const html = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Orçamento - SoftPrime</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;padding:30px;color:#1a1a1a;max-width:800px;margin:0 auto}
+    table{width:100%;border-collapse:collapse;margin-top:16px}
+    th,td{border:1px solid #e5e7eb;padding:10px;text-align:left}
+    th{background:#f9fafb;font-weight:600}
+    .signature{margin-top:200px;display:flex;flex-direction:column;align-items:center;gap:8px}
+    .signature .sig-line{width:60%;border-top:2px solid #1a1a1a;height:0}
+    .signature .sig-name{font-weight:600;font-size:0.95rem;color:#1a1a1a}
+    .print-footer{margin-top:24px;font-size:0.85rem;color:#6b7280;text-align:center}
+  </style>
+</head>
+<body>${lastPreviewHtml}</body>
+</html>`;
+      
       const blob = new Blob([html], { type: "application/msword" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); 
       a.href = url; 
-      a.download = `orcamento_${new Date().getTime()}.doc`; 
+      a.download = `orcamento_softprime_${new Date().getTime()}.doc`; 
       a.click();
       URL.revokeObjectURL(url);
       
@@ -823,12 +850,31 @@ function exportQuoteDoc(quoteId){
     const issuer = store.issuers.find(i=>i.id===q.issuerId)||{};
     const client = store.clients.find(c=>c.id===q.clientId)||{};
     const html = renderQuoteHtml(q, issuer, client);
-    const doc = `<!doctype html><html><head><meta charset="utf-8"><title>Orçamento</title></head><body>${html}</body></html>`;
+    
+    const doc = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Orçamento ${escapeHtml(q.numero || q.id)}</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;padding:30px;color:#1a1a1a;max-width:800px;margin:0 auto}
+    table{width:100%;border-collapse:collapse;margin-top:16px}
+    th,td{border:1px solid #e5e7eb;padding:10px;text-align:left}
+    th{background:#f9fafb;font-weight:600}
+    .signature{margin-top:200px;display:flex;flex-direction:column;align-items:center;gap:8px;page-break-inside:avoid}
+    .signature .sig-line{width:60%;border-top:2px solid #1a1a1a;height:0}
+    .signature .sig-name{font-weight:600;font-size:0.95rem;color:#1a1a1a;margin-top:8px}
+    .print-footer{margin-top:24px;font-size:0.85rem;color:#6b7280;text-align:center}
+  </style>
+</head>
+<body>${html}</body>
+</html>`;
+    
     const blob = new Blob([doc], { type: "application/msword" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); 
     a.href = url; 
-    a.download = `orcamento-${q.numero || q.id}.doc`; 
+    a.download = `orcamento_${q.numero || q.id}.doc`; 
     a.click();
     URL.revokeObjectURL(url);
     
@@ -861,9 +907,9 @@ function exportQuotePdf(quoteId){
           table{width:100%;border-collapse:collapse;margin-top:16px}
           th,td{border:1px solid #e5e7eb;padding:10px}
           th{background:#f9fafb;font-weight:600}
-          .signature{margin-top:200px;display:flex;flex-direction:column;align-items:center;gap:8px}
+          .signature{margin-top:200px;display:flex;flex-direction:column;align-items:center;gap:8px;page-break-inside:avoid}
           .signature .sig-line{width:60%;border-top:2px solid #1a1a1a;height:0}
-          .signature .sig-name{font-weight:600;font-size:0.95rem;color:#1a1a1a}
+          .signature .sig-name{font-weight:600;font-size:0.95rem;color:#1a1a1a;margin-top:8px}
           .print-footer{margin-top:24px;font-size:0.85rem;color:#6b7280;text-align:center}
           @media print {
             .print-footer{position:fixed;bottom:20px;left:0;right:0}
@@ -884,26 +930,26 @@ function exportQuotePdf(quoteId){
 
 function renderQuoteHtml(q, issuer, client){
   const dateOnly = formatDateISOtoLocal(q.createdAt);
-  const issuerContact = `${issuer.address ? escapeHtml(issuer.address) + '<br/>' : ''}${issuer.phone ? '📞 ' + escapeHtml(issuer.phone) : ''}`;
-  const clientContact = `${client.address ? escapeHtml(client.address) + '<br/>' : ''}${client.phone ? '📞 ' + escapeHtml(client.phone) : ''}`;
+  const issuerContact = `${issuer.address ? escapeHtml(issuer.address) + '<br/>' : ''}${issuer.phone ? 'Tel: ' + escapeHtml(issuer.phone) : ''}`;
+  const clientContact = `${client.address ? escapeHtml(client.address) + '<br/>' : ''}${client.phone ? 'Tel: ' + escapeHtml(client.phone) : ''}`;
 
   return `
     <div style="max-width:800px;margin:0 auto;padding:20px;">
       <div style="text-align:center;margin-bottom:30px;">
-        <h1 style="color:#0d7de0;margin:0;font-size:28px;">📄 ORÇAMENTO</h1>
+        <h1 style="color:#0d7de0;margin:0;font-size:28px;">ORÇAMENTO</h1>
         <h2 style="margin:8px 0;font-size:22px;">${escapeHtml(q.numero || q.id)}</h2>
       </div>
       
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-bottom:30px;">
         <div style="padding:16px;background:#f9fafb;border-radius:8px;">
-          <h3 style="margin:0 0 12px 0;color:#0d7de0;font-size:16px;">📤 EMISSOR</h3>
+          <h3 style="margin:0 0 12px 0;color:#0d7de0;font-size:16px;">EMISSOR</h3>
           <strong style="font-size:16px;">${escapeHtml(issuer.name||'—')}</strong><br/>
           ${issuer.cnpjCpf? '<span style="color:#6b7280;">CNPJ/CPF:</span> ' + escapeHtml(issuer.cnpjCpf) + '<br/>':''}
           <div style="font-size:14px;color:#4b5563;margin-top:8px;">${issuerContact}</div>
         </div>
         
         <div style="padding:16px;background:#f9fafb;border-radius:8px;">
-          <h3 style="margin:0 0 12px 0;color:#0d7de0;font-size:16px;">📥 DESTINATÁRIO</h3>
+          <h3 style="margin:0 0 12px 0;color:#0d7de0;font-size:16px;">DESTINATÁRIO</h3>
           <strong style="font-size:16px;">${escapeHtml(client.name||'—')}</strong><br/>
           ${client.cnpjCpf? '<span style="color:#6b7280;">CNPJ/CPF:</span> ' + escapeHtml(client.cnpjCpf) + '<br/>':''}
           <div style="font-size:14px;color:#4b5563;margin-top:8px;">${clientContact}</div>
@@ -940,7 +986,7 @@ function renderQuoteHtml(q, issuer, client){
       </table>
 
       ${q.notes ? `<div style="margin-top:24px;padding:16px;background:#fffbeb;border-left:4px solid #f59e0b;border-radius:4px;">
-        <strong style="color:#92400e;">📌 Observações:</strong>
+        <strong style="color:#92400e;">Observações:</strong>
         <div style="margin-top:8px;color:#78350f;white-space:pre-wrap;">${escapeHtml(q.notes)}</div>
       </div>` : ''}
 
