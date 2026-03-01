@@ -16,6 +16,10 @@ function loadStore(){
     s.nextQuoteNumber = computeNextQuoteNumberFromQuotes(s.quotes || []);
     localStorage.setItem(STORE_KEY, JSON.stringify(s));
   }
+  // ensure arrays exist (defensive)
+  s.issuers = s.issuers || [];
+  s.clients = s.clients || [];
+  s.quotes = s.quotes || [];
   return s;
 }
 function saveStore(s){ localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
@@ -105,12 +109,14 @@ function setDefaultQuoteFields(){
 
 // render lists
 function renderIssuers(){
-  if (!issuerList || !selectIssuer) return;
-  issuerList.innerHTML = "";
+  if (!selectIssuer) return;
+  // issuerList is optional in UI; if present, keep it updated
+  if (issuerList) issuerList.innerHTML = "";
   selectIssuer.innerHTML = "<option value=''>-- selecione --</option>";
-  store.issuers.forEach(i=>{
-    const li = document.createElement("li");
-    li.innerHTML = `<div>
+  (store.issuers || []).forEach(i=>{
+    if (issuerList) {
+      const li = document.createElement("li");
+      li.innerHTML = `<div>
         <strong>${escapeHtml(i.name)}</strong>
         <div class="meta">${escapeHtml(i.cnpjCpf||'')} ${i.phone ? '• ' + escapeHtml(i.phone) : ''}</div>
         <div class="meta">${escapeHtml(i.address||'')}</div>
@@ -119,7 +125,8 @@ function renderIssuers(){
         <button class="edit-issuer" data-id="${i.id}">Editar</button>
         <button class="del-issuer" data-id="${i.id}">Excluir</button>
       </div>`;
-    issuerList.appendChild(li);
+      issuerList.appendChild(li);
+    }
 
     const opt = document.createElement("option");
     opt.value = i.id; opt.textContent = `${i.name} — ${i.cnpjCpf||""}`;
@@ -128,12 +135,13 @@ function renderIssuers(){
 }
 
 function renderClients(){
-  if (!clientList || !selectClient) return;
-  clientList.innerHTML = "";
+  if (!selectClient) return;
+  if (clientList) clientList.innerHTML = "";
   selectClient.innerHTML = "<option value=''>-- selecione --</option>";
-  store.clients.forEach(c=>{
-    const li = document.createElement("li");
-    li.innerHTML = `<div>
+  (store.clients || []).forEach(c=>{
+    if (clientList) {
+      const li = document.createElement("li");
+      li.innerHTML = `<div>
         <strong>${escapeHtml(c.name)}</strong>
         <div class="meta">${escapeHtml(c.cnpjCpf||'')} ${c.phone ? '• ' + escapeHtml(c.phone) : ''}</div>
         <div class="meta">${escapeHtml(c.address||'')}</div>
@@ -142,7 +150,8 @@ function renderClients(){
         <button class="edit-client" data-id="${c.id}">Editar</button>
         <button class="del-client" data-id="${c.id}">Excluir</button>
       </div>`;
-    clientList.appendChild(li);
+      clientList.appendChild(li);
+    }
 
     const opt = document.createElement("option");
     opt.value = c.id; opt.textContent = `${c.name} — ${c.cnpjCpf||""}`;
@@ -174,8 +183,6 @@ function renderQuotes(){
   attachQuoteListListeners();
 }
 
-// rest of app.js unchanged (items, saving, preview, exports...)
-// ... (the rest of the file is the same as previously provided)
 function renderItems(items=[]){
   if (!itemsBody) return;
   itemsBody.innerHTML = "";
@@ -227,234 +234,309 @@ function recalcTotals(){
   return {subtotal,total};
 }
 
-// issuer/client submit
-issuerForm && issuerForm.addEventListener("submit", (e)=>{
-  e.preventDefault();
-  const name = (issuerName && issuerName.value || "").trim();
-  const cnpjCpf = (issuerCnpjCpf && issuerCnpjCpf.value || "").trim();
-  const address = (issuerAddress && issuerAddress.value || "").trim();
-  const phone = (issuerPhone && issuerPhone.value || "").trim();
-  if (!name) return alert("Preencha a razão social");
+// ISSUER handler (robust)
+if (issuerForm) {
+  issuerForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    try {
+      console.log("[DEBUG] issuerForm submit fired");
+      const name = (issuerName && issuerName.value || "").trim();
+      const cnpjCpf = (issuerCnpjCpf && issuerCnpjCpf.value || "").trim();
+      const address = (issuerAddress && issuerAddress.value || "").trim();
+      const phone = (issuerPhone && issuerPhone.value || "").trim();
+      console.log("[DEBUG] issuer values:", { name, cnpjCpf, address, phone });
 
-  if (editingIssuerId) {
-    const item = store.issuers.find(x => x.id === editingIssuerId);
-    if (item) {
-      item.name = name; item.cnpjCpf = cnpjCpf; item.address = address; item.phone = phone;
+      if (!name) {
+        alert("Preencha a razão social");
+        return;
+      }
+
+      // ensure arrays exist
+      store.issuers = store.issuers || [];
+
+      if (editingIssuerId) {
+        const item = store.issuers.find(x => x.id === editingIssuerId);
+        if (item) {
+          item.name = name; item.cnpjCpf = cnpjCpf; item.address = address; item.phone = phone;
+          saveStore(store);
+          editingIssuerId = null;
+          if (issuerSubmitBtn) issuerSubmitBtn.textContent = "Adicionar emissor";
+          if (issuerCancelBtn) issuerCancelBtn.style.display = "none";
+          issuerForm.reset();
+          renderIssuers(); renderQuotes();
+          console.log("[DEBUG] issuer updated");
+          return;
+        } else {
+          console.warn("[WARN] editingIssuerId set but item not found:", editingIssuerId);
+        }
+      }
+
+      // create new
+      const newItem = { id: uid(), name, cnpjCpf, address, phone };
+      store.issuers.push(newItem);
       saveStore(store);
-      editingIssuerId = null;
-      issuerSubmitBtn.textContent = "Adicionar emissor";
-      issuerCancelBtn.style.display = "none";
       issuerForm.reset();
-      renderIssuers(); renderQuotes(); return;
+      renderIssuers(); renderQuotes();
+      console.log("[DEBUG] issuer added", newItem);
+    } catch (err) {
+      console.error("[ERROR] issuerForm handler failed:", err);
+      alert("Ocorreu um erro ao adicionar o emissor. Veja o console para detalhes.");
     }
-  }
+  });
+}
 
-  store.issuers.push({id:uid(), name, cnpjCpf, address, phone});
-  saveStore(store);
-  issuerForm.reset();
-  renderIssuers(); renderQuotes();
-});
+// CLIENT handler (robust)
+if (clientForm) {
+  clientForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    try {
+      console.log("[DEBUG] clientForm submit fired");
+      const name = (clientName && clientName.value || "").trim();
+      const cnpjCpf = (clientCnpjCpf && clientCnpjCpf.value || "").trim();
+      const address = (clientAddress && clientAddress.value || "").trim();
+      const phone = (clientPhone && clientPhone.value || "").trim();
+      console.log("[DEBUG] client values:", { name, cnpjCpf, address, phone });
 
-clientForm && clientForm.addEventListener("submit", (e)=>{
-  e.preventDefault();
-  const name = (clientName && clientName.value || "").trim();
-  const cnpjCpf = (clientCnpjCpf && clientCnpjCpf.value || "").trim();
-  const address = (clientAddress && clientAddress.value || "").trim();
-  const phone = (clientPhone && clientPhone.value || "").trim();
-  if (!name) return alert("Preencha o nome do cliente");
+      if (!name) {
+        alert("Preencha o nome do cliente");
+        return;
+      }
 
-  if (editingClientId) {
-    const item = store.clients.find(x => x.id === editingClientId);
-    if (item) {
-      item.name = name; item.cnpjCpf = cnpjCpf; item.address = address; item.phone = phone;
+      store.clients = store.clients || [];
+
+      if (editingClientId) {
+        const item = store.clients.find(x => x.id === editingClientId);
+        if (item) {
+          item.name = name; item.cnpjCpf = cnpjCpf; item.address = address; item.phone = phone;
+          saveStore(store);
+          editingClientId = null;
+          if (clientSubmitBtn) clientSubmitBtn.textContent = "Adicionar cliente";
+          if (clientCancelBtn) clientCancelBtn.style.display = "none";
+          clientForm.reset();
+          renderClients(); renderQuotes(); 
+          console.log("[DEBUG] client updated");
+          return;
+        } else {
+          console.warn("[WARN] editingClientId set but item not found:", editingClientId);
+        }
+      }
+
+      const newItem = { id: uid(), name, cnpjCpf, address, phone };
+      store.clients.push(newItem);
       saveStore(store);
-      editingClientId = null;
-      clientSubmitBtn.textContent = "Adicionar cliente";
-      clientCancelBtn.style.display = "none";
       clientForm.reset();
-      renderClients(); renderQuotes(); return;
+      renderClients(); renderQuotes();
+      console.log("[DEBUG] client added", newItem);
+    } catch (err) {
+      console.error("[ERROR] clientForm handler failed:", err);
+      alert("Ocorreu um erro ao adicionar o cliente. Veja o console para detalhes.");
     }
-  }
+  });
+}
 
-  store.clients.push({id:uid(), name, cnpjCpf, address, phone});
-  saveStore(store);
-  clientForm.reset();
-  renderClients(); renderQuotes();
-});
+// lists: edit/delete handlers (issuer)
+if (issuerList) {
+  issuerList.addEventListener("click", (e) => {
+    try {
+      if (e.target.classList.contains("del-issuer")) {
+        const id = e.target.dataset.id;
+        if (!confirm("Excluir emissor?")) return;
+        store.issuers = store.issuers.filter(x => x.id !== id);
+        saveStore(store); renderIssuers(); renderQuotes(); renderClients();
+      } else if (e.target.classList.contains("edit-issuer")) {
+        const id = e.target.dataset.id;
+        const it = store.issuers.find(x => x.id === id);
+        if (!it) return;
+        editingIssuerId = id;
+        if (issuerName) issuerName.value = it.name || "";
+        if (issuerCnpjCpf) issuerCnpjCpf.value = it.cnpjCpf || "";
+        if (issuerAddress) issuerAddress.value = it.address || "";
+        if (issuerPhone) issuerPhone.value = it.phone || "";
+        if (issuerSubmitBtn) issuerSubmitBtn.textContent = "Atualizar emissor";
+        if (issuerCancelBtn) issuerCancelBtn.style.display = "inline-block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (err) {
+      console.error("[ERROR] issuerList click handler:", err);
+    }
+  });
+}
 
-// lists: edit/delete handlers
-issuerList && issuerList.addEventListener("click", (e) => {
-  if (e.target.classList.contains("del-issuer")) {
-    const id = e.target.dataset.id;
-    if (!confirm("Excluir emissor?")) return;
-    store.issuers = store.issuers.filter(x => x.id !== id);
-    saveStore(store); renderIssuers(); renderQuotes(); renderClients();
-  } else if (e.target.classList.contains("edit-issuer")) {
-    const id = e.target.dataset.id;
-    const it = store.issuers.find(x => x.id === id);
-    if (!it) return;
-    editingIssuerId = id;
-    issuerName.value = it.name || "";
-    issuerCnpjCpf.value = it.cnpjCpf || "";
-    issuerAddress.value = it.address || "";
-    issuerPhone.value = it.phone || "";
-    issuerSubmitBtn.textContent = "Atualizar emissor";
-    issuerCancelBtn.style.display = "inline-block";
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-});
+// lists: edit/delete handlers (client)
+if (clientList) {
+  clientList.addEventListener("click", (e) => {
+    try {
+      if (e.target.classList.contains("del-client")) {
+        const id = e.target.dataset.id;
+        if (!confirm("Excluir cliente?")) return;
+        store.clients = store.clients.filter(x => x.id !== id);
+        saveStore(store); renderClients(); renderQuotes(); renderIssuers();
+      } else if (e.target.classList.contains("edit-client")) {
+        const id = e.target.dataset.id;
+        const it = store.clients.find(x => x.id === id);
+        if (!it) return;
+        editingClientId = id;
+        if (clientName) clientName.value = it.name || "";
+        if (clientCnpjCpf) clientCnpjCpf.value = it.cnpjCpf || "";
+        if (clientAddress) clientAddress.value = it.address || "";
+        if (clientPhone) clientPhone.value = it.phone || "";
+        if (clientSubmitBtn) clientSubmitBtn.textContent = "Atualizar cliente";
+        if (clientCancelBtn) clientCancelBtn.style.display = "inline-block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (err) {
+      console.error("[ERROR] clientList click handler:", err);
+    }
+  });
+}
 
-clientList && clientList.addEventListener("click", (e) => {
-  if (e.target.classList.contains("del-client")) {
-    const id = e.target.dataset.id;
-    if (!confirm("Excluir cliente?")) return;
-    store.clients = store.clients.filter(x => x.id !== id);
-    saveStore(store); renderClients(); renderQuotes(); renderIssuers();
-  } else if (e.target.classList.contains("edit-client")) {
-    const id = e.target.dataset.id;
-    const it = store.clients.find(x => x.id === id);
-    if (!it) return;
-    editingClientId = id;
-    clientName.value = it.name || "";
-    clientCnpjCpf.value = it.cnpjCpf || "";
-    clientAddress.value = it.address || "";
-    clientPhone.value = it.phone || "";
-    clientSubmitBtn.textContent = "Atualizar cliente";
-    clientCancelBtn.style.display = "inline-block";
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-});
-
-issuerCancelBtn && issuerCancelBtn.addEventListener("click", () => {
-  editingIssuerId = null; issuerForm.reset();
-  issuerSubmitBtn.textContent = "Adicionar emissor";
-  issuerCancelBtn.style.display = "none";
-});
-clientCancelBtn && clientCancelBtn.addEventListener("click", () => {
-  editingClientId = null; clientForm.reset();
-  clientSubmitBtn.textContent = "Adicionar cliente";
-  clientCancelBtn.style.display = "none";
-});
+if (issuerCancelBtn) {
+  issuerCancelBtn.addEventListener("click", () => {
+    editingIssuerId = null; issuerForm && issuerForm.reset();
+    if (issuerSubmitBtn) issuerSubmitBtn.textContent = "Adicionar emissor";
+    issuerCancelBtn.style.display = "none";
+  });
+}
+if (clientCancelBtn) {
+  clientCancelBtn.addEventListener("click", () => {
+    editingClientId = null; clientForm && clientForm.reset();
+    if (clientSubmitBtn) clientSubmitBtn.textContent = "Adicionar cliente";
+    clientCancelBtn.style.display = "none";
+  });
+}
 
 // add item
 if (addItemBtn) {
   addItemBtn.addEventListener("click", (e) => {
     e.preventDefault();
-    currentItems.push({descricao:"",quantidade:1,valorUnitario:0});
-    renderItems(currentItems);
-    setTimeout(() => {
-      const lastIdx = currentItems.length - 1;
-      const newInput = itemsBody.querySelector(`input[data-idx="${lastIdx}"][data-field="descricao"]`);
-      if (newInput) newInput.focus();
-    }, 0);
+    try {
+      currentItems.push({descricao:"",quantidade:1,valorUnitario:0});
+      renderItems(currentItems);
+      setTimeout(() => {
+        const lastIdx = currentItems.length - 1;
+        const newInput = itemsBody.querySelector(`input[data-idx="${lastIdx}"][data-field="descricao"]`);
+        if (newInput) newInput.focus();
+      }, 0);
+    } catch (err) {
+      console.error("[ERROR] addItemBtn handler:", err);
+    }
   });
 }
 
 // helper: check duplicate numero for same issuer
 function existsSameNumberForIssuer(numero, issuerId, excludeQuoteId = null){
   if (!numero) return false;
-  return store.quotes.some(q => q.numero === numero && q.issuerId === issuerId && q.id !== excludeQuoteId);
+  return (store.quotes || []).some(q => q.numero === numero && q.issuerId === issuerId && q.id !== excludeQuoteId);
 }
 
 // save/update quote
-saveQuoteBtn && saveQuoteBtn.addEventListener("click", ()=>{
-  const issuerId = selectIssuer && selectIssuer.value;
-  const clientId = selectClient && selectClient.value;
-  if (!issuerId || !clientId) return alert("Selecione emissor e cliente.");
-  const totals = recalcTotals();
+if (saveQuoteBtn) {
+  saveQuoteBtn.addEventListener("click", ()=>{
+    try {
+      const issuerId = selectIssuer && selectIssuer.value;
+      const clientId = selectClient && selectClient.value;
+      if (!issuerId || !clientId) return alert("Selecione emissor e cliente.");
+      const totals = recalcTotals();
 
-  let numeroValue = (quoteNumber && quoteNumber.value || "").trim();
-  let generatedNumber = false;
-  if (!numeroValue) {
-    numeroValue = formatQuoteNumber(store.nextQuoteNumber || computeNextQuoteNumberFromQuotes(store.quotes));
-    generatedNumber = true;
-  }
+      let numeroValue = (quoteNumber && quoteNumber.value || "").trim();
+      let generatedNumber = false;
+      if (!numeroValue) {
+        numeroValue = formatQuoteNumber(store.nextQuoteNumber || computeNextQuoteNumberFromQuotes(store.quotes));
+        generatedNumber = true;
+      }
 
-  // VALIDATION: block only when same numero AND same issuer
-  if (editingQuoteId) {
-    if (existsSameNumberForIssuer(numeroValue, issuerId, editingQuoteId)) {
-      return alert("Já existe um orçamento com esse número para o mesmo emissor. Escolha outro número ou altere o emissor.");
+      // VALIDATION: block only when same numero AND same issuer
+      if (editingQuoteId) {
+        if (existsSameNumberForIssuer(numeroValue, issuerId, editingQuoteId)) {
+          return alert("Já existe um orçamento com esse número para o mesmo emissor. Escolha outro número ou altere o emissor.");
+        }
+      } else {
+        if (existsSameNumberForIssuer(numeroValue, issuerId, null)) {
+          return alert("Já existe um orçamento com esse número para o mesmo emissor. Escolha outro número ou altere o emissor.");
+        }
+      }
+
+      const notesVal = (notes && notes.value || "").trim();
+
+      if (editingQuoteId) {
+        const q = store.quotes.find(x => x.id === editingQuoteId);
+        if (!q) return alert("Orçamento não encontrado para atualizar.");
+        q.issuerId = issuerId;
+        q.clientId = clientId;
+        q.numero = numeroValue || null;
+        q.items = JSON.parse(JSON.stringify(currentItems));
+        q.subtotal = totals.subtotal;
+        q.total = totals.total;
+        q.notes = notesVal;
+        q.updatedAt = new Date().toISOString();
+        saveStore(store);
+        alert(`Orçamento atualizado! Nº: ${q.numero}`);
+        endEditMode();
+        renderQuotes();
+        currentItems = [{descricao:"",quantidade:1,valorUnitario:0}];
+        renderItems(currentItems);
+        return;
+      }
+
+      const q = {
+        id: uid(),
+        issuerId, clientId,
+        numero: numeroValue || null,
+        items: JSON.parse(JSON.stringify(currentItems)),
+        subtotal: totals.subtotal, total: totals.total,
+        notes: notesVal,
+        createdAt: new Date().toISOString()
+      };
+      store.quotes.push(q);
+      if (generatedNumber) store.nextQuoteNumber = (store.nextQuoteNumber || 1) + 1;
+      saveStore(store);
+      currentItems = [{descricao:"",quantidade:1,valorUnitario:0}];
+      // reset form items
+      renderItems(currentItems); renderQuotes();
+      // set defaults for next quote
+      setDefaultQuoteFields();
+      alert(`Orçamento salvo! Nº: ${q.numero}`);
+    } catch (err) {
+      console.error("[ERROR] saveQuoteBtn handler:", err);
+      alert("Ocorreu um erro ao salvar o orçamento. Veja o console para detalhes.");
     }
-  } else {
-    if (existsSameNumberForIssuer(numeroValue, issuerId, null)) {
-      return alert("Já existe um orçamento com esse número para o mesmo emissor. Escolha outro número ou altere o emissor.");
-    }
-  }
-
-  const notesVal = (notes && notes.value || "").trim();
-
-  if (editingQuoteId) {
-    const q = store.quotes.find(x => x.id === editingQuoteId);
-    if (!q) return alert("Orçamento não encontrado para atualizar.");
-    q.issuerId = issuerId;
-    q.clientId = clientId;
-    q.numero = numeroValue || null;
-    q.items = JSON.parse(JSON.stringify(currentItems));
-    q.subtotal = totals.subtotal;
-    q.total = totals.total;
-    q.notes = notesVal;
-    q.updatedAt = new Date().toISOString();
-    saveStore(store);
-    alert(`Orçamento atualizado! Nº: ${q.numero}`);
-    endEditMode();
-    renderQuotes();
-    currentItems = [{descricao:"",quantidade:1,valorUnitario:0}];
-    renderItems(currentItems);
-    return;
-  }
-
-  const q = {
-    id: uid(),
-    issuerId, clientId,
-    numero: numeroValue || null,
-    items: JSON.parse(JSON.stringify(currentItems)),
-    subtotal: totals.subtotal, total: totals.total,
-    notes: notesVal,
-    createdAt: new Date().toISOString()
-  };
-  store.quotes.push(q);
-  if (generatedNumber) store.nextQuoteNumber = (store.nextQuoteNumber || 1) + 1;
-  saveStore(store);
-  currentItems = [{descricao:"",quantidade:1,valorUnitario:0}];
-  // reset form items
-  renderItems(currentItems); renderQuotes();
-  // set defaults for next quote
-  setDefaultQuoteFields();
-  alert(`Orçamento salvo! Nº: ${q.numero}`);
-});
+  });
+}
 
 // edit / end edit
 function startEditMode(quoteId) {
   const q = store.quotes.find(x => x.id === quoteId);
   if (!q) return alert("Orçamento não encontrado.");
   editingQuoteId = quoteId;
-  selectIssuer.value = q.issuerId || "";
-  selectClient.value = q.clientId || "";
-  quoteNumber.value = q.numero || "";
+  if (selectIssuer) selectIssuer.value = q.issuerId || "";
+  if (selectClient) selectClient.value = q.clientId || "";
+  if (quoteNumber) quoteNumber.value = q.numero || "";
   // show the quote date for editing (from createdAt)
   if (quoteDate) quoteDate.value = formatDateISOtoLocal(q.createdAt || q.updatedAt || new Date().toISOString());
   if (notes) notes.value = q.notes || "";
   currentItems = JSON.parse(JSON.stringify(q.items || [{descricao:"",quantidade:1,valorUnitario:0}]));
   renderItems(currentItems);
-  saveQuoteBtn.textContent = "Atualizar Orçamento";
-  cancelEditBtn.style.display = "inline-block";
+  if (saveQuoteBtn) saveQuoteBtn.textContent = "Atualizar Orçamento";
+  if (cancelEditBtn) cancelEditBtn.style.display = "inline-block";
   window.scrollTo({ top: 200, behavior: 'smooth' });
 }
 function endEditMode() {
   editingQuoteId = null;
-  saveQuoteBtn.textContent = "Salvar Orçamento";
-  cancelEditBtn.style.display = "none";
+  if (saveQuoteBtn) saveQuoteBtn.textContent = "Salvar Orçamento";
+  if (cancelEditBtn) cancelEditBtn.style.display = "none";
   // restore defaults for new quote
   setDefaultQuoteFields();
   if (notes) notes.value = "";
 }
-cancelEditBtn && cancelEditBtn.addEventListener("click", (e)=>{
-  e.preventDefault();
-  if (!confirm("Cancelar edição e limpar formulário?")) return;
-  endEditMode();
-  currentItems = [{descricao:"",quantidade:1,valorUnitario:0}];
-  renderItems(currentItems);
-});
+if (cancelEditBtn) {
+  cancelEditBtn.addEventListener("click", (e)=>{
+    e.preventDefault();
+    if (!confirm("Cancelar edição e limpar formulário?")) return;
+    endEditMode();
+    currentItems = [{descricao:"",quantidade:1,valorUnitario:0}];
+    renderItems(currentItems);
+  });
+}
 
 // preview / print now per-quote (openPreview called from quote list)
 function openPreview(id){
@@ -466,99 +548,124 @@ function openPreview(id){
   lastPreviewHtml = html;
   previewModal && previewModal.classList.remove("hidden");
 }
-closePreview && closePreview.addEventListener("click", ()=> previewModal && previewModal.classList.add("hidden"));
-printBtn && printBtn.addEventListener("click", ()=>{
-  const content = previewArea ? previewArea.innerHTML : "";
-  const w = window.open("", "_blank");
-  w.document.write(`<html><head><title>Orçamento</title><style>
-    body{font-family:Arial,Helvetica,sans-serif;padding:20px;color:#111}
-    table{width:100%;border-collapse:collapse;margin-top:8px}
-    th,td{border:1px solid #ddd;padding:8px}
-    th{background:#f7f7f7}
-    .signature{margin-top:200px;display:flex;flex-direction:column;align-items:center;gap:6px}
-    .signature .sig-line{width:60%;border-top:2px solid #000;height:0}
-    .signature .sig-name{font-weight:600;font-size:0.95rem;color:#222}
-    .print-footer{margin-top:18px;font-size:0.85rem;color:#666;position:fixed;left:20px;bottom:18px}
-    </style></head><body>${content}</body></html>`);
-  w.document.close(); w.focus(); setTimeout(()=>w.print(), 300);
+if (closePreview) closePreview.addEventListener("click", ()=> previewModal && previewModal.classList.add("hidden"));
+if (printBtn) printBtn.addEventListener("click", ()=>{
+  try {
+    const content = previewArea ? previewArea.innerHTML : "";
+    const w = window.open("", "_blank");
+    w.document.write(`<html><head><title>Orçamento</title><style>
+      body{font-family:Arial,Helvetica,sans-serif;padding:20px;color:#111}
+      table{width:100%;border-collapse:collapse;margin-top:8px}
+      th,td{border:1px solid #ddd;padding:8px}
+      th{background:#f7f7f7}
+      .signature{margin-top:200px;display:flex;flex-direction:column;align-items:center;gap:6px}
+      .signature .sig-line{width:60%;border-top:2px solid #000;height:0}
+      .signature .sig-name{font-weight:600;font-size:0.95rem;color:#222}
+      .print-footer{margin-top:18px;font-size:0.85rem;color:#666;position:fixed;left:20px;bottom:18px}
+      </style></head><body>${content}</body></html>`);
+    w.document.close(); w.focus(); setTimeout(()=>w.print(), 300);
+  } catch (err) {
+    console.error("[ERROR] printBtn handler:", err);
+    alert("Erro ao imprimir. Veja o console para detalhes.");
+  }
 });
 
 // export CSV (all quotes)
-exportCsvBtn && exportCsvBtn.addEventListener("click", ()=>{
-  if (!store.quotes.length) return alert("Nenhum orçamento salvo para exportar.");
-  const rows = [];
-  const header = ["numero","issuer_name","issuer_cnpjcpf","client_name","client_cnpjcpf","created_at","subtotal","total","items_json","notes"];
-  rows.push(header.join(","));
-  store.quotes.forEach(q => {
-    const issuer = store.issuers.find(i=>i.id===q.issuerId) || {};
-    const client = store.clients.find(c=>c.id===q.clientId) || {};
-    const itemsJson = JSON.stringify(q.items || []);
-    const row = [
-      `"${(q.numero||"")}"`,
-      `"${(issuer.name||"")}"`,
-      `"${(issuer.cnpjCpf||"")}"`,
-      `"${(client.name||"")}"`,
-      `"${(client.cnpjCpf||"")}"`,
-      `"${(q.createdAt||"")}"`,
-      `"${money(q.subtotal||0)}"`,
-      `"${money(q.total||0)}"`,
-      `"${itemsJson.replace(/"/g,'""')}"`,
-      `"${(q.notes||"").replace(/"/g,'""')}"`
-    ];
-    rows.push(row.join(","));
-  });
-  const csv = rows.join("\n");
-  const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'orcamentos.csv'; a.click();
-  URL.revokeObjectURL(url);
+if (exportCsvBtn) exportCsvBtn.addEventListener("click", ()=>{
+  try {
+    if (!store.quotes.length) return alert("Nenhum orçamento salvo para exportar.");
+    const rows = [];
+    const header = ["numero","issuer_name","issuer_cnpjcpf","client_name","client_cnpjcpf","created_at","subtotal","total","items_json","notes"];
+    rows.push(header.join(","));
+    store.quotes.forEach(q => {
+      const issuer = store.issuers.find(i=>i.id===q.issuerId) || {};
+      const client = store.clients.find(c=>c.id===q.clientId) || {};
+      const itemsJson = JSON.stringify(q.items || []);
+      const row = [
+        `"${(q.numero||"")}"`,
+        `"${(issuer.name||"")}"`,
+        `"${(issuer.cnpjCpf||"")}"`,
+        `"${(client.name||"")}"`,
+        `"${(client.cnpjCpf||"")}"`,
+        `"${(q.createdAt||"")}"`,
+        `"${money(q.subtotal||0)}"`,
+        `"${money(q.total||0)}"`,
+        `"${itemsJson.replace(/"/g,'""')}"`,
+        `"${(q.notes||"").replace(/"/g,'""')}"`
+      ];
+      rows.push(row.join(","));
+    });
+    const csv = rows.join("\n");
+    const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'orcamentos.csv'; a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("[ERROR] exportCsvBtn handler:", err);
+    alert("Erro ao exportar CSV. Veja o console para detalhes.");
+  }
 });
 
 // export Word: exports current preview (keeps existing button behavior)
-exportDocBtn && exportDocBtn.addEventListener("click", ()=>{
-  if (!lastPreviewHtml) return alert("Abra um orçamento (Visualizar / Imprimir) primeiro para exportar para Word.");
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Orçamento</title></head><body>${lastPreviewHtml}</body></html>`;
-  const blob = new Blob([html], { type: "application/msword" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'orcamento.doc'; a.click();
-  URL.revokeObjectURL(url);
+if (exportDocBtn) exportDocBtn.addEventListener("click", ()=>{
+  try {
+    if (!lastPreviewHtml) return alert("Abra um orçamento (Visualizar / Imprimir) primeiro para exportar para Word.");
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Orçamento</title></head><body>${lastPreviewHtml}</body></html>`;
+    const blob = new Blob([html], { type: "application/msword" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'orcamento.doc'; a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("[ERROR] exportDocBtn handler:", err);
+    alert("Erro ao exportar Word. Veja o console para detalhes.");
+  }
 });
 
 // export a specific quote to Word (called from list)
 function exportQuoteDoc(quoteId){
-  const q = store.quotes.find(x=>x.id===quoteId); if (!q) return alert("Orçamento não encontrado");
-  const issuer = store.issuers.find(i=>i.id===q.issuerId)||{};
-  const client = store.clients.find(c=>c.id===q.clientId)||{};
-  const html = renderQuoteHtml(q, issuer, client);
-  const doc = `<!doctype html><html><head><meta charset="utf-8"><title>Orçamento</title></head><body>${html}</body></html>`;
-  const blob = new Blob([doc], { type: "application/msword" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = `orcamento-${q.numero || q.id}.doc`; a.click();
-  URL.revokeObjectURL(url);
+  try {
+    const q = store.quotes.find(x=>x.id===quoteId); if (!q) return alert("Orçamento não encontrado");
+    const issuer = store.issuers.find(i=>i.id===q.issuerId)||{};
+    const client = store.clients.find(c=>c.id===q.clientId)||{};
+    const html = renderQuoteHtml(q, issuer, client);
+    const doc = `<!doctype html><html><head><meta charset="utf-8"><title>Orçamento</title></head><body>${html}</body></html>`;
+    const blob = new Blob([doc], { type: "application/msword" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `orcamento-${q.numero || q.id}.doc`; a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("[ERROR] exportQuoteDoc:", err);
+    alert("Erro ao exportar o documento. Veja o console para detalhes.");
+  }
 }
 
 // export a specific quote to PDF (opens preview in new window and triggers print)
 function exportQuotePdf(quoteId){
-  const q = store.quotes.find(x=>x.id===quoteId); if (!q) return alert("Orçamento não encontrado");
-  const issuer = store.issuers.find(i=>i.id===q.issuerId)||{};
-  const client = store.clients.find(c=>c.id===q.clientId)||{};
-  const html = renderQuoteHtml(q, issuer, client);
-  const w = window.open("", "_blank");
-  w.document.write(`<html><head><meta charset="utf-8"><title>Orçamento</title><style>
-    body{font-family:Arial,Helvetica,sans-serif;padding:20px;color:#111}
-    table{width:100%;border-collapse:collapse;margin-top:8px}
-    th,td{border:1px solid #ddd;padding:8px}
-    th{background:#f7f7f7}
-    .signature{margin-top:200px;display:flex;flex-direction:column;align-items:center;gap:6px}
-    .signature .sig-line{width:60%;border-top:2px solid #000;height:0}
-    .signature .sig-name{font-weight:600;font-size:0.95rem;color:#222}
-    .print-footer{margin-top:18px;font-size:0.85rem;color:#666;position:fixed;left:20px;bottom:18px}
-    </style></head><body>${html}</body></html>`);
-  w.document.close();
-  w.focus();
-  setTimeout(()=> {
-    w.print();
-  }, 300);
+  try {
+    const q = store.quotes.find(x=>x.id===quoteId); if (!q) return alert("Orçamento não encontrado");
+    const issuer = store.issuers.find(i=>i.id===q.issuerId)||{};
+    const client = store.clients.find(c=>c.id===q.clientId)||{};
+    const html = renderQuoteHtml(q, issuer, client);
+    const w = window.open("", "_blank");
+    w.document.write(`<html><head><meta charset="utf-8"><title>Orçamento</title><style>
+      body{font-family:Arial,Helvetica,sans-serif;padding:20px;color:#111}
+      table{width:100%;border-collapse:collapse;margin-top:8px}
+      th,td{border:1px solid #ddd;padding:8px}
+      th{background:#f7f7f7}
+      .signature{margin-top:200px;display:flex;flex-direction:column;align-items:center;gap:6px}
+      .signature .sig-line{width:60%;border-top:2px solid #000;height:0}
+      .signature .sig-name{font-weight:600;font-size:0.95rem;color:#222}
+      .print-footer{margin-top:18px;font-size:0.85rem;color:#666;position:fixed;left:20px;bottom:18px}
+      </style></head><body>${html}</body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(()=> {
+      w.print();
+    }, 300);
+  } catch (err) {
+    console.error("[ERROR] exportQuotePdf:", err);
+    alert("Erro ao exportar PDF. Veja o console para detalhes.");
+  }
 }
 
 // quote HTML (preview)
