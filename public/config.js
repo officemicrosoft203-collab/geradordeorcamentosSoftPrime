@@ -2,7 +2,6 @@
 const SUPABASE_URL = "";
 const SUPABASE_ANON_KEY = "";
 
-// Cria cliente Supabase e expõe em window.sb para o app (no navegador)
-if (typeof supabase !== "undefined" && typeof window !== "undefined") {
-  window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-}
+// Expõe para uso global
+window.SUPABASE_URL = SUPABASE_URL;
+window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;

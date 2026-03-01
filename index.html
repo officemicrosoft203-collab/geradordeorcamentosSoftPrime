@@ -11,197 +11,356 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="header">
-    <div class="header-row">
-      <div class="brand">
-        <div class="logo">SoftPrime</div>
-        <div class="site-title">Gerador de Orçamentos</div>
+
+  <!-- ========== TELA DE AUTENTICAÇÃO ========== -->
+  <div id="authScreen" style="display:flex; min-height:100vh; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#fff; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,0.3); max-width:440px; width:100%; padding:40px;">
+      
+      <!-- Logo e Título -->
+      <div style="text-align:center; margin-bottom:32px;">
+        <div style="background:linear-gradient(135deg,#0d7de0,#0a5fb8); color:#fff; padding:16px 24px; border-radius:12px; font-weight:700; font-size:24px; display:inline-block; margin-bottom:16px;">
+          SoftPrime
+        </div>
+        <h2 style="margin:0; color:#1a1a1a; font-size:24px;">Gerador de Orçamentos</h2>
+        <p style="color:#6b7280; margin-top:8px; font-size:14px;">Faça login ou crie sua conta</p>
       </div>
-      <div class="header-actions">
-        <button id="exportCsvBtn" class="btn btn-ghost" title="Exportar todos os orçamentos para Excel">
-          📊 Exportar Excel
+
+      <!-- Tabs: Login / Cadastro -->
+      <div style="display:flex; gap:8px; margin-bottom:24px; border-bottom:2px solid #f3f4f6;">
+        <button id="tabLogin" class="auth-tab active" style="flex:1; padding:12px; border:none; background:transparent; cursor:pointer; font-weight:600; color:#0d7de0; border-bottom:3px solid #0d7de0; transition:all 0.3s;">
+          Login
         </button>
-        <button id="exportDocBtn" class="btn btn-ghost" title="Exportar orçamento atual para Word">
-          📄 Exportar Word
+        <button id="tabSignup" class="auth-tab" style="flex:1; padding:12px; border:none; background:transparent; cursor:pointer; font-weight:600; color:#6b7280; border-bottom:3px solid transparent; transition:all 0.3s;">
+          Cadastrar
         </button>
       </div>
-    </div>
-  </header>
 
-  <main class="wrap">
-    <!-- Seção de Emissores e Clientes -->
-    <section class="card two-col">
-      <div>
-        <h4>📝 Dados do Emissor</h4>
-        <form id="issuerForm" class="form-grid" autocomplete="off">
-          <div class="full">
-            <label for="issuerName" class="sr-only">Nome / Razão social</label>
-            <input id="issuerName" placeholder="Nome / Razão social *" required aria-label="Nome do emissor" />
-          </div>
-          <div class="half">
-            <label for="issuerCnpjCpf" class="sr-only">CPF / CNPJ</label>
-            <input id="issuerCnpjCpf" placeholder="CPF / CNPJ" aria-label="CPF ou CNPJ do emissor" />
-          </div>
-          <div class="half">
-            <label for="issuerPhone" class="sr-only">Telefone</label>
-            <input id="issuerPhone" placeholder="Telefone" type="tel" aria-label="Telefone do emissor" />
-          </div>
-          <div class="full">
-            <label for="issuerAddress" class="sr-only">Endereço completo</label>
-            <textarea id="issuerAddress" placeholder="Endereço completo" rows="2" aria-label="Endereço do emissor"></textarea>
-          </div>
-          <div class="form-actions">
-            <button id="issuerSubmitBtn" class="btn btn-primary full" type="submit">Adicionar Emissor</button>
-            <button id="issuerCancelBtn" class="btn btn-outline full" type="button">Cancelar</button>
-          </div>
-        </form>
-        
-        <div id="issuerListContainer" style="margin-top:20px;">
-          <ul id="issuerList" class="list"></ul>
-        </div>
-      </div>
-
-      <div>
-        <h4>👤 Dados do Cliente</h4>
-        <form id="clientForm" class="form-grid" autocomplete="off">
-          <div class="full">
-            <label for="clientName" class="sr-only">Nome / Empresa</label>
-            <input id="clientName" placeholder="Nome / Empresa *" required aria-label="Nome do cliente" />
-          </div>
-          <div class="half">
-            <label for="clientCnpjCpf" class="sr-only">CPF / CNPJ</label>
-            <input id="clientCnpjCpf" placeholder="CPF / CNPJ" aria-label="CPF ou CNPJ do cliente" />
-          </div>
-          <div class="half">
-            <label for="clientPhone" class="sr-only">Telefone</label>
-            <input id="clientPhone" placeholder="Telefone" type="tel" aria-label="Telefone do cliente" />
-          </div>
-          <div class="full">
-            <label for="clientAddress" class="sr-only">Endereço completo</label>
-            <textarea id="clientAddress" placeholder="Endereço completo" rows="2" aria-label="Endereço do cliente"></textarea>
-          </div>
-          <div class="form-actions">
-            <button id="clientSubmitBtn" class="btn btn-primary full" type="submit">Adicionar Cliente</button>
-            <button id="clientCancelBtn" class="btn btn-outline full" type="button">Cancelar</button>
-          </div>
-        </form>
-        
-        <div id="clientListContainer" style="margin-top:20px;">
-          <ul id="clientList" class="list"></ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- Novo Orçamento -->
-    <section class="card">
-      <h4>💼 Novo Orçamento</h4>
-      <div class="form-grid" style="margin-bottom:20px;">
-        <div>
-          <label for="selectIssuer" style="display:block;margin-bottom:6px;font-weight:600;font-size:14px;color:#4b5563;">
-            Emissor *
+      <!-- Formulário de Login -->
+      <form id="loginForm" style="display:block;">
+        <div style="margin-bottom:16px;">
+          <label for="loginEmail" style="display:block; margin-bottom:6px; font-weight:600; font-size:14px; color:#4b5563;">
+            Email
           </label>
-          <select id="selectIssuer" required aria-label="Selecione o emissor">
-            <option value="">-- selecione o emissor --</option>
-          </select>
+          <input 
+            type="email" 
+            id="loginEmail" 
+            placeholder="seu@email.com" 
+            required
+            style="width:100%; padding:12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:14px;"
+          />
         </div>
-        <div>
-          <label for="selectClient" style="display:block;margin-bottom:6px;font-weight:600;font-size:14px;color:#4b5563;">
-            Cliente *
+
+        <div style="margin-bottom:20px;">
+          <label for="loginPassword" style="display:block; margin-bottom:6px; font-weight:600; font-size:14px; color:#4b5563;">
+            Senha
           </label>
-          <select id="selectClient" required aria-label="Selecione o cliente">
-            <option value="">-- selecione o cliente --</option>
-          </select>
+          <input 
+            type="password" 
+            id="loginPassword" 
+            placeholder="••••••••" 
+            required
+            style="width:100%; padding:12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:14px;"
+          />
         </div>
-      </div>
 
-      <!-- Informações do Orçamento -->
-      <div class="form-grid" style="margin-bottom:20px;padding:16px;background:#f9fafb;border-radius:8px;">
-        <div>
-          <label for="quoteNumber" style="display:block;margin-bottom:6px;font-weight:600;font-size:14px;color:#4b5563;">
-            Número do Orçamento
+        <button 
+          type="submit" 
+          class="btn btn-primary" 
+          style="width:100%; padding:14px; font-size:16px; margin-bottom:12px; background:#0d7de0; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600;"
+        >
+          🔐 Entrar
+        </button>
+
+        <button 
+          type="button" 
+          id="forgotPasswordBtn"
+          style="width:100%; padding:8px; background:transparent; border:none; color:#6b7280; font-size:14px; cursor:pointer; text-decoration:underline;"
+        >
+          Esqueci minha senha
+        </button>
+      </form>
+
+      <!-- Formulário de Cadastro -->
+      <form id="signupForm" style="display:none;">
+        <div style="margin-bottom:16px;">
+          <label for="signupName" style="display:block; margin-bottom:6px; font-weight:600; font-size:14px; color:#4b5563;">
+            Nome Completo
           </label>
-          <input id="quoteNumber" placeholder="Gerado automaticamente" readonly aria-label="Número do orçamento" />
+          <input 
+            type="text" 
+            id="signupName" 
+            placeholder="Seu nome completo" 
+            required
+            style="width:100%; padding:12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:14px;"
+          />
         </div>
-        <div>
-          <label for="quoteDate" style="display:block;margin-bottom:6px;font-weight:600;font-size:14px;color:#4b5563;">
-            Data
+
+        <div style="margin-bottom:16px;">
+          <label for="signupEmail" style="display:block; margin-bottom:6px; font-weight:600; font-size:14px; color:#4b5563;">
+            Email
           </label>
-          <input id="quoteDate" placeholder="Data atual" readonly aria-label="Data do orçamento" />
-        </div>
-      </div>
-
-      <!-- Itens do Orçamento -->
-      <div class="items-wrap">
-        <h4 style="margin-bottom:12px;">📋 Itens do Orçamento</h4>
-        <div style="overflow-x:auto;">
-          <table class="items-table" id="itemsTable" aria-label="Tabela de itens do orçamento">
-            <thead>
-              <tr>
-                <th style="width:50%">Descrição</th>
-                <th style="width:12%">Qtd</th>
-                <th style="width:16%">Unit. (R$)</th>
-                <th style="width:16%">Total (R$)</th>
-                <th style="width:6%"></th>
-              </tr>
-            </thead>
-            <tbody id="itemsBody"></tbody>
-          </table>
+          <input 
+            type="email" 
+            id="signupEmail" 
+            placeholder="seu@email.com" 
+            required
+            style="width:100%; padding:12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:14px;"
+          />
         </div>
 
-        <div class="row-between" style="margin-top:16px;">
-          <div>
-            <button id="addItemBtn" class="btn btn-add">+ Adicionar Item</button>
-          </div>
-          <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;">
-            <div class="subtotal">Subtotal: R$ <strong><span id="subtotal">0.00</span></strong></div>
-            <div class="total">Total: R$ <strong><span id="grandTotal">0.00</span></strong></div>
-          </div>
+        <div style="margin-bottom:20px;">
+          <label for="signupPassword" style="display:block; margin-bottom:6px; font-weight:600; font-size:14px; color:#4b5563;">
+            Senha (mínimo 6 caracteres)
+          </label>
+          <input 
+            type="password" 
+            id="signupPassword" 
+            placeholder="••••••••" 
+            required
+            minlength="6"
+            style="width:100%; padding:12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:14px;"
+          />
         </div>
+
+        <button 
+          type="submit" 
+          class="btn btn-primary" 
+          style="width:100%; padding:14px; font-size:16px; background:#0d7de0; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600;"
+        >
+          ✨ Criar Conta
+        </button>
+      </form>
+
+      <!-- Divisor -->
+      <div style="display:flex; align-items:center; margin:24px 0; gap:12px;">
+        <div style="flex:1; height:1px; background:#e5e7eb;"></div>
+        <span style="color:#9ca3af; font-size:14px;">ou</span>
+        <div style="flex:1; height:1px; background:#e5e7eb;"></div>
       </div>
 
-      <!-- Observações -->
-      <div style="margin-top:20px;">
-        <label for="notes" style="display:block;margin-bottom:8px;font-weight:600;font-size:14px;color:#4b5563;">
-          📌 Observações (opcional)
-        </label>
-        <textarea id="notes" rows="4" placeholder="Adicione observações, condições de pagamento, prazo de validade, etc." aria-label="Observações do orçamento"></textarea>
-      </div>
-    </section>
-
-    <!-- Botões de Ação -->
-    <div class="generate-wrap">
-      <button id="saveQuoteBtn" class="btn btn-primary btn-generate">
-        📄 Gerar Orçamento
+      <!-- Login com Google -->
+      <button 
+        id="googleLoginBtn"
+        style="width:100%; padding:14px; border:1.5px solid #d1d5db; border-radius:8px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:12px; font-weight:600; font-size:15px; transition:all 0.2s;"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Continuar com Google
       </button>
-      <button id="cancelEditBtn" class="btn btn-outline" style="width:100%;margin-top:12px;">
-        Cancelar Edição
-      </button>
-    </div>
 
-    <!-- Orçamentos Salvos -->
-    <section class="card">
-      <h4>💾 Orçamentos Salvos</h4>
-      <ul id="quotesList" class="list" aria-label="Lista de orçamentos salvos"></ul>
-    </section>
-  </main>
+      <!-- Mensagem de status -->
+      <div id="authMessage" style="margin-top:16px; padding:12px; border-radius:8px; display:none; text-align:center; font-size:14px;"></div>
 
-  <!-- Modal de Preview -->
-  <div id="previewModal" class="modal hidden" aria-hidden="true" role="dialog" aria-labelledby="previewTitle">
-    <div class="modal-box">
-      <button id="closePreview" class="modal-close" aria-label="Fechar visualização">×</button>
-      <h3 id="previewTitle" style="margin-bottom:20px;font-size:20px;">Visualização do Orçamento</h3>
-      <div id="previewArea" style="border:1px solid #e5e7eb;padding:20px;border-radius:8px;background:#fff;"></div>
-      <div class="modal-actions">
-        <button id="printBtn" class="btn btn-primary">🖨️ Imprimir / Salvar PDF</button>
-      </div>
     </div>
   </div>
 
-  <footer class="footer">
-    <p>© 2026 Desenvolvido por <strong>SoftPrime</strong> - Todos os direitos reservados</p>
-  </footer>
+  <!-- ========== APLICAÇÃO PRINCIPAL ========== -->
+  <div id="appScreen" style="display:none;">
+    
+    <header class="header">
+      <div class="header-row">
+        <div class="brand">
+          <div class="logo">SoftPrime</div>
+          <div class="site-title">Gerador de Orçamentos</div>
+        </div>
+        <div class="header-actions">
+          <span id="userName" style="margin-right:12px; color:#4b5563; font-weight:500;"></span>
+          <button id="logoutBtn" class="btn btn-ghost">🚪 Sair</button>
+          <button id="exportCsvBtn" class="btn btn-ghost" title="Exportar todos os orçamentos para Excel">
+            📊 Exportar Excel
+          </button>
+          <button id="exportDocBtn" class="btn btn-ghost" title="Exportar orçamento atual para Word">
+            📄 Exportar Word
+          </button>
+        </div>
+      </div>
+    </header>
 
+    <main class="wrap">
+      <!-- Seção de Emissores e Clientes -->
+      <section class="card two-col">
+        <div>
+          <h4>📝 Dados do Emissor</h4>
+          <form id="issuerForm" class="form-grid" autocomplete="off">
+            <div class="full">
+              <label for="issuerName" class="sr-only">Nome / Razão social</label>
+              <input id="issuerName" placeholder="Nome / Razão social *" required aria-label="Nome do emissor" />
+            </div>
+            <div class="half">
+              <label for="issuerCnpjCpf" class="sr-only">CPF / CNPJ</label>
+              <input id="issuerCnpjCpf" placeholder="CPF / CNPJ" aria-label="CPF ou CNPJ do emissor" />
+            </div>
+            <div class="half">
+              <label for="issuerPhone" class="sr-only">Telefone</label>
+              <input id="issuerPhone" placeholder="Telefone" type="tel" aria-label="Telefone do emissor" />
+            </div>
+            <div class="full">
+              <label for="issuerAddress" class="sr-only">Endereço completo</label>
+              <textarea id="issuerAddress" placeholder="Endereço completo" rows="2" aria-label="Endereço do emissor"></textarea>
+            </div>
+            <div class="form-actions">
+              <button id="issuerSubmitBtn" class="btn btn-primary full" type="submit">Adicionar Emissor</button>
+              <button id="issuerCancelBtn" class="btn btn-outline full" type="button">Cancelar</button>
+            </div>
+          </form>
+          
+          <div id="issuerListContainer" style="margin-top:20px;">
+            <ul id="issuerList" class="list"></ul>
+          </div>
+        </div>
+
+        <div>
+          <h4>👤 Dados do Cliente</h4>
+          <form id="clientForm" class="form-grid" autocomplete="off">
+            <div class="full">
+              <label for="clientName" class="sr-only">Nome / Empresa</label>
+              <input id="clientName" placeholder="Nome / Empresa *" required aria-label="Nome do cliente" />
+            </div>
+            <div class="half">
+              <label for="clientCnpjCpf" class="sr-only">CPF / CNPJ</label>
+              <input id="clientCnpjCpf" placeholder="CPF / CNPJ" aria-label="CPF ou CNPJ do cliente" />
+            </div>
+            <div class="half">
+              <label for="clientPhone" class="sr-only">Telefone</label>
+              <input id="clientPhone" placeholder="Telefone" type="tel" aria-label="Telefone do cliente" />
+            </div>
+            <div class="full">
+              <label for="clientAddress" class="sr-only">Endereço completo</label>
+              <textarea id="clientAddress" placeholder="Endereço completo" rows="2" aria-label="Endereço do cliente"></textarea>
+            </div>
+            <div class="form-actions">
+              <button id="clientSubmitBtn" class="btn btn-primary full" type="submit">Adicionar Cliente</button>
+              <button id="clientCancelBtn" class="btn btn-outline full" type="button">Cancelar</button>
+            </div>
+          </form>
+          
+          <div id="clientListContainer" style="margin-top:20px;">
+            <ul id="clientList" class="list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Novo Orçamento -->
+      <section class="card">
+        <h4>💼 Novo Orçamento</h4>
+        <div class="form-grid" style="margin-bottom:20px;">
+          <div>
+            <label for="selectIssuer" style="display:block;margin-bottom:6px;font-weight:600;font-size:14px;color:#4b5563;">
+              Emissor *
+            </label>
+            <select id="selectIssuer" required aria-label="Selecione o emissor">
+              <option value="">-- selecione o emissor --</option>
+            </select>
+          </div>
+          <div>
+            <label for="selectClient" style="display:block;margin-bottom:6px;font-weight:600;font-size:14px;color:#4b5563;">
+              Cliente *
+            </label>
+            <select id="selectClient" required aria-label="Selecione o cliente">
+              <option value="">-- selecione o cliente --</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Informações do Orçamento -->
+        <div class="form-grid" style="margin-bottom:20px;padding:16px;background:#f9fafb;border-radius:8px;">
+          <div>
+            <label for="quoteNumber" style="display:block;margin-bottom:6px;font-weight:600;font-size:14px;color:#4b5563;">
+              Número do Orçamento
+            </label>
+            <input id="quoteNumber" placeholder="Gerado automaticamente" readonly aria-label="Número do orçamento" />
+          </div>
+          <div>
+            <label for="quoteDate" style="display:block;margin-bottom:6px;font-weight:600;font-size:14px;color:#4b5563;">
+              Data
+            </label>
+            <input id="quoteDate" placeholder="Data atual" readonly aria-label="Data do orçamento" />
+          </div>
+        </div>
+
+        <!-- Itens do Orçamento -->
+        <div class="items-wrap">
+          <h4 style="margin-bottom:12px;">📋 Itens do Orçamento</h4>
+          <div style="overflow-x:auto;">
+            <table class="items-table" id="itemsTable" aria-label="Tabela de itens do orçamento">
+              <thead>
+                <tr>
+                  <th style="width:50%">Descrição</th>
+                  <th style="width:12%">Qtd</th>
+                  <th style="width:16%">Unit. (R$)</th>
+                  <th style="width:16%">Total (R$)</th>
+                  <th style="width:6%"></th>
+                </tr>
+              </thead>
+              <tbody id="itemsBody"></tbody>
+            </table>
+          </div>
+
+          <div class="row-between" style="margin-top:16px;">
+            <div>
+              <button id="addItemBtn" class="btn btn-add">+ Adicionar Item</button>
+            </div>
+            <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;">
+              <div class="subtotal">Subtotal: R$ <strong><span id="subtotal">0.00</span></strong></div>
+              <div class="total">Total: R$ <strong><span id="grandTotal">0.00</span></strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Observações -->
+        <div style="margin-top:20px;">
+          <label for="notes" style="display:block;margin-bottom:8px;font-weight:600;font-size:14px;color:#4b5563;">
+            📌 Observações (opcional)
+          </label>
+          <textarea id="notes" rows="4" placeholder="Adicione observações, condições de pagamento, prazo de validade, etc." aria-label="Observações do orçamento"></textarea>
+        </div>
+      </section>
+
+      <!-- Botões de Ação -->
+      <div class="generate-wrap">
+        <button id="saveQuoteBtn" class="btn btn-primary btn-generate">
+          📄 Gerar Orçamento
+        </button>
+        <button id="cancelEditBtn" class="btn btn-outline" style="width:100%;margin-top:12px;">
+          Cancelar Edição
+        </button>
+      </div>
+
+      <!-- Orçamentos Salvos -->
+      <section class="card">
+        <h4>💾 Orçamentos Salvos</h4>
+        <ul id="quotesList" class="list" aria-label="Lista de orçamentos salvos"></ul>
+      </section>
+    </main>
+
+    <!-- Modal de Preview -->
+    <div id="previewModal" class="modal hidden" aria-hidden="true" role="dialog" aria-labelledby="previewTitle">
+      <div class="modal-box">
+        <button id="closePreview" class="modal-close" aria-label="Fechar visualização">×</button>
+        <h3 id="previewTitle" style="margin-bottom:20px;font-size:20px;">Visualização do Orçamento</h3>
+        <div id="previewArea" style="border:1px solid #e5e7eb;padding:20px;border-radius:8px;background:#fff;"></div>
+        <div class="modal-actions">
+          <button id="printBtn" class="btn btn-primary">🖨️ Imprimir / Salvar PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>© 2026 Desenvolvido por <strong>SoftPrime</strong> - Todos os direitos reservados</p>
+    </footer>
+
+  </div>
+  <!-- FIM DA APLICAÇÃO PRINCIPAL -->
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script src="auth-handlers.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
