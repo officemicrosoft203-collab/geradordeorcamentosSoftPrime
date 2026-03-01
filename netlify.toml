@@ -1,7 +1,8 @@
-# Netlify config — build gera arquivos em /public e public será publicado
 [build]
-  command = "npm run build"
-  publish = "public"
+  publish = "."
+  command = ""
 
-[context.production.environment]
-  NODE_ENV = "production"
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
