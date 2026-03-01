@@ -1,5 +1,6 @@
 // app.js — Gerador de Orçamentos SoftPrime
 // Sistema completo com localStorage, validações e exportações
+// ATUALIZADO: Permite números duplicados para CNPJ diferentes + edição de número
 
 const STORE_KEY = "softprime_quotes_v2";
 
@@ -124,7 +125,6 @@ function setDefaultQuoteFields(){
 }
 
 function showNotification(message, type = 'success'){
-  // Notificação simples via alert - pode ser melhorada com toast
   const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
   alert(`${icon} ${message}`);
 }
@@ -215,7 +215,7 @@ function renderQuotes(){
         </div>
       </div>
       <div class="quote-actions">
-        <button class="btn btn-outline view-quote" data-id="${q.id}">👁️ Visualizar</button>
+        <button class="btn btn-outline view-quote" data-id="${q.id}">����️ Visualizar</button>
         <button class="btn btn-outline export-quote" data-id="${q.id}">📄 Word</button>
         <button class="btn btn-outline export-pdf" data-id="${q.id}">📑 PDF</button>
         <button class="btn btn-outline edit-quote" data-id="${q.id}">✏️ Editar</button>
@@ -509,9 +509,14 @@ if (addItemBtn) {
 }
 
 // ========== QUOTE HANDLERS ==========
+// ATUALIZADO: Verifica duplicatas apenas para o MESMO emissor
 function existsSameNumberForIssuer(numero, issuerId, excludeQuoteId = null){
   if (!numero) return false;
-  return (store.quotes || []).some(q => q.numero === numero && q.issuerId === issuerId && q.id !== excludeQuoteId);
+  return (store.quotes || []).some(q => 
+    q.numero === numero && 
+    q.issuerId === issuerId && 
+    q.id !== excludeQuoteId
+  );
 }
 
 if (saveQuoteBtn) {
@@ -536,11 +541,14 @@ if (saveQuoteBtn) {
 
       let numeroValue = (quoteNumber && quoteNumber.value || "").trim();
       let generatedNumber = false;
+      
+      // Se não houver número ou estiver em branco, gera automaticamente
       if (!numeroValue) {
         numeroValue = formatQuoteNumber(store.nextQuoteNumber || computeNextQuoteNumberFromQuotes(store.quotes));
         generatedNumber = true;
       }
 
+      // IMPORTANTE: Verifica duplicata apenas para o MESMO emissor
       if (editingQuoteId) {
         if (existsSameNumberForIssuer(numeroValue, issuerId, editingQuoteId)) {
           showNotification("Já existe um orçamento com esse número para o mesmo emissor", "error");
@@ -591,7 +599,12 @@ if (saveQuoteBtn) {
       };
       
       store.quotes.push(q);
-      if (generatedNumber) store.nextQuoteNumber = (store.nextQuoteNumber || 1) + 1;
+      
+      // Só incrementa se foi gerado automaticamente
+      if (generatedNumber) {
+        store.nextQuoteNumber = (store.nextQuoteNumber || 1) + 1;
+      }
+      
       saveStore(store);
       
       currentItems = [{descricao:"",quantidade:1,valorUnitario:0}];
@@ -601,7 +614,6 @@ if (saveQuoteBtn) {
       
       showNotification(`✅ Orçamento ${q.numero} salvo com sucesso!`, "success");
       
-      // Scroll para a lista de orçamentos
       setTimeout(() => {
         quotesList && quotesList.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 300);
@@ -623,7 +635,13 @@ function startEditMode(quoteId) {
   editingQuoteId = quoteId;
   if (selectIssuer) selectIssuer.value = q.issuerId || "";
   if (selectClient) selectClient.value = q.clientId || "";
-  if (quoteNumber) quoteNumber.value = q.numero || "";
+  
+  // IMPORTANTE: Permite edição do número do orçamento
+  if (quoteNumber) {
+    quoteNumber.value = q.numero || "";
+    quoteNumber.removeAttribute("readonly"); // Remove o readonly para permitir edição
+  }
+  
   if (quoteDate) quoteDate.value = formatDateISOtoLocal(q.createdAt || q.updatedAt || new Date().toISOString());
   if (notes) notes.value = q.notes || "";
   
@@ -634,13 +652,17 @@ function startEditMode(quoteId) {
   if (cancelEditBtn) cancelEditBtn.style.display = "block";
   
   window.scrollTo({ top: 300, behavior: 'smooth' });
-  showNotification("Modo de edição ativado", "info");
+  showNotification("Modo de edição ativado. Você pode editar o número do orçamento!", "info");
 }
 
 function endEditMode() {
   editingQuoteId = null;
   if (saveQuoteBtn) saveQuoteBtn.textContent = "📄 Gerar Orçamento";
   if (cancelEditBtn) cancelEditBtn.style.display = "none";
+  
+  // Restaura o readonly no campo de número
+  if (quoteNumber) quoteNumber.setAttribute("readonly", "true");
+  
   setDefaultQuoteFields();
   if (notes) notes.value = "";
 }
@@ -973,7 +995,6 @@ function renderAll(){
   renderItems(currentItems); 
 }
 
-// Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
   renderAll();
   setDefaultQuoteFields();
