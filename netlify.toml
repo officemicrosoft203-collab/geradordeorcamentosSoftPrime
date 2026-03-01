@@ -4,5 +4,18 @@
 
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/login.html"
   status = 200
+  force = false
+  conditions = {Role = ["admin"]}
+
+[[redirects]]
+  from = "/"
+  to = "/login.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
