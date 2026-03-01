@@ -53,20 +53,22 @@ class AuthManager {
   }
 
   showAuth() {
-    const authScreen = document.getElementById('authScreen');
-    const appScreen = document.getElementById('appScreen');
-    if (authScreen) authScreen.style.display = 'flex';
-    if (appScreen) appScreen.style.display = 'none';
-    console.log('🔐 Mostrando tela de login');
+    // Redireciona para login.html se não estiver logado
+    if (window.location.pathname !== '/login.html' && !window.location.pathname.endsWith('login.html')) {
+      console.log('🔐 Redirecionando para login...');
+      window.location.href = 'login.html';
+    }
   }
 
   showApp() {
-    const authScreen = document.getElementById('authScreen');
-    const appScreen = document.getElementById('appScreen');
-    if (authScreen) authScreen.style.display = 'none';
-    if (appScreen) appScreen.style.display = 'block';
+    // Redireciona para index.html se estiver logado e estiver na página de login
+    if (window.location.pathname === '/login.html' || window.location.pathname.endsWith('login.html')) {
+      console.log('✅ Redirecionando para o app...');
+      window.location.href = 'index.html';
+      return;
+    }
     
-    // Atualiza nome do usuário no header
+    // Atualiza nome do usuário no header (só se estiver no index.html)
     const userNameEl = document.getElementById('userName');
     if (userNameEl && this.currentUser) {
       const displayName = this.currentUser.user_metadata?.full_name || 
@@ -156,6 +158,10 @@ class AuthManager {
       if (error) throw error;
 
       console.log('✅ Logout realizado');
+      
+      // Redireciona para login
+      window.location.href = 'login.html';
+      
       return { 
         success: true, 
         message: '✅ Você saiu com sucesso!' 
@@ -175,7 +181,7 @@ class AuthManager {
       console.log('🔄 Enviando email de recuperação para:', email);
       
       const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}`
+        redirectTo: `${window.location.origin}/login.html`
       });
 
       if (error) throw error;

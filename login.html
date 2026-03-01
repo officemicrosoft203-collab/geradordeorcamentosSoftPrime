@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - SoftPrime Orçamentos</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .login-container {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo h1 {
+      color: #667eea;
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .logo p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.3s;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+    }
+
+    .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .form-container {
+      display: none;
+    }
+
+    .form-container.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert-error {
+      background: #fee;
+      color: #c33;
+      border: 1px solid #fcc;
+    }
+
+    .alert-success {
+      background: #efe;
+      color: #3c3;
+      border: 1px solid #cfc;
+    }
+
+    .forgot-password {
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .forgot-password a {
+      color: #667eea;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .forgot-password a:hover {
+      text-decoration: underline;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo">
+      <h1>🌟 SoftPrime</h1>
+      <p>Gerador de Orçamentos</p>
+      <p style="font-size: 12px; margin-top: 10px;">Faça login ou crie sua conta</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('login')">Login</button>
+      <button class="tab" onclick="showTab('cadastro')">Cadastrar</button>
+    </div>
+
+    <div id="alertBox" class="alert"></div>
+
+    <!-- FORMULÁRIO DE LOGIN -->
+    <div id="loginForm" class="form-container active">
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="seu@email.com" required>
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="loginPassword" placeholder="Mínimo 6 caracteres" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="loginBtn">🔐 Entrar</button>
+      </form>
+      <div class="forgot-password">
+        <a href="#" onclick="handleForgotPassword(event)">Esqueci minha senha</a>
+      </div>
+    </div>
+
+    <!-- FORMULÁRIO DE CADASTRO -->
+    <div id="cadastroForm" class="form-container">
+      <form onsubmit="handleSignUp(event)">
+        <div class="form-group">
+          <label>Nome Completo</label>
+          <input type="text" id="signupName" placeholder="Seu nome" required>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="signupEmail" placeholder="seu@email.com" required>
+        </div>
+        <div class="form-group">
+          <label>Senha (mínimo 6 caracteres)</label>
+          <input type="password" id="signupPassword" placeholder="Escolha uma senha forte" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn-primary" id="signupBtn">✨ Criar Conta</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    // Troca de abas
+    function showTab(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const cadastroForm = document.getElementById('cadastroForm');
+      const tabs = document.querySelectorAll('.tab');
+      
+      tabs.forEach(t => t.classList.remove('active'));
+      
+      if (tab === 'login') {
+        loginForm.classList.add('active');
+        cadastroForm.classList.remove('active');
+        tabs[0].classList.add('active');
+      } else {
+        cadastroForm.classList.add('active');
+        loginForm.classList.remove('active');
+        tabs[1].classList.add('active');
+      }
+      
+      hideAlert();
+    }
+
+    // Mostra alerta
+    function showAlert(message, type) {
+      const alertBox = document.getElementById('alertBox');
+      alertBox.textContent = message;
+      alertBox.className = `alert alert-${type} show`;
+    }
+
+    // Esconde alerta
+    function hideAlert() {
+      const alertBox = document.getElementById('alertBox');
+      alertBox.className = 'alert';
+    }
+
+    // Verifica se já está logado ao carregar a página
+    window.addEventListener('DOMContentLoaded', async () => {
+      // Aguarda o AuthManager inicializar
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      if (window.authManager && window.authManager.isAuthenticated()) {
+        console.log('✅ Usuário já logado, redirecionando...');
+        window.location.href = 'index.html';
+      }
+    });
+
+    // Login
+    async function handleLogin(event) {
+      event.preventDefault();
+      hideAlert();
+      
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('loginBtn');
+      
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading"></span> Entrando...';
+      
+      console.log('🔄 Tentando fazer login...');
+      const result = await window.authManager.signIn(email, password);
+      
+      if (result.success) {
+        showAlert('✅ Login realizado! Redirecionando...', 'success');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+      } else {
+        showAlert(result.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '🔐 Entrar';
+      }
+    }
+
+    // Cadastro
+    async function handleSignUp(event) {
+      event.preventDefault();
+      hideAlert();
+      
+      const name = document.getElementById('signupName').value;
+      const email = document.getElementById('signupEmail').value;
+      const password = document.getElementById('signupPassword').value;
+      const btn = document.getElementById('signupBtn');
+      
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading"></span> Criando conta...';
+      
+      console.log('🔄 Criando conta...');
+      const result = await window.authManager.signUp(email, password, name);
+      
+      if (result.success) {
+        showAlert('✅ Conta criada! Faça login agora.', 'success');
+        setTimeout(() => {
+          showTab('login');
+          document.getElementById('loginEmail').value = email;
+          btn.disabled = false;
+          btn.innerHTML = '✨ Criar Conta';
+        }, 2000);
+      } else {
+        showAlert(result.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '✨ Criar Conta';
+      }
+    }
+
+    // Recuperar senha
+    async function handleForgotPassword(event) {
+      event.preventDefault();
+      const email = prompt('Digite seu email para recuperação de senha:');
+      
+      if (email) {
+        const result = await window.authManager.resetPassword(email);
+        showAlert(result.message, result.success ? 'success' : 'error');
+      }
+    }
+  </script>
+</body>
+</html>
