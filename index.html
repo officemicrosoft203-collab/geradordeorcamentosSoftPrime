@@ -334,11 +334,14 @@
   </div>
   <!-- FIM DA APLICAÇÃO PRINCIPAL -->
 
-  <!-- JavaScript INLINE (SEM ARQUIVOS EXTERNOS) -->
+    <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
   <script>
-    // TROCA DE ABAS
+    // AUTH HANDLERS
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('✅ Sistema carregado');
+      console.log('✅ Handlers carregados');
       
       const tabLogin = document.getElementById('tabLogin');
       const tabSignup = document.getElementById('tabSignup');
@@ -346,6 +349,7 @@
       const signupForm = document.getElementById('signupForm');
       const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
       const authMessage = document.getElementById('authMessage');
+      const logoutBtn = document.getElementById('logoutBtn');
 
       function showMessage(msg, type = 'info') {
         if (!authMessage) return;
@@ -365,12 +369,12 @@
           authMessage.style.color = '#1e40af';
           authMessage.style.border = '1px solid #93c5fd';
         }
-
+        
         setTimeout(() => { authMessage.style.display = 'none'; }, 5000);
       }
 
       function switchToLogin() {
-        console.log('→ Login');
+        console.log('→ Aba Login');
         tabLogin.style.color = '#0d7de0';
         tabLogin.style.borderBottom = '3px solid #0d7de0';
         tabSignup.style.color = '#6b7280';
@@ -381,7 +385,7 @@
       }
 
       function switchToSignup() {
-        console.log('→ Cadastro');
+        console.log('→ Aba Cadastro');
         tabSignup.style.color = '#0d7de0';
         tabSignup.style.borderBottom = '3px solid #0d7de0';
         tabLogin.style.color = '#6b7280';
@@ -391,43 +395,117 @@
         authMessage.style.display = 'none';
       }
 
-      tabLogin.onclick = (e) => { e.preventDefault(); switchToLogin(); };
-      tabSignup.onclick = (e) => { e.preventDefault(); switchToSignup(); };
+      // Event listeners
+      if (tabLogin) tabLogin.onclick = (e) => { e.preventDefault(); switchToLogin(); };
+      if (tabSignup) tabSignup.onclick = (e) => { e.preventDefault(); switchToSignup(); };
 
-      loginForm.onsubmit = (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value;
-        if (!email || !password) { showMessage('Preencha todos os campos', 'error'); return; }
-        showMessage('Login temporário - configure Supabase para funcionar', 'info');
-        // TODO: Integrar com Supabase
-      };
+      // Login
+      if (loginForm) {
+        loginForm.onsubmit = async (e) => {
+          e.preventDefault();
+          const email = document.getElementById('loginEmail').value.trim();
+          const password = document.getElementById('loginPassword').value;
+          
+          if (!email || !password) {
+            showMessage('Preencha todos os campos', 'error');
+            return;
+          }
+          
+          if (!window.authManager) {
+            showMessage('Sistema não inicializado. Verifique o console.', 'error');
+            return;
+          }
+          
+          showMessage('🔄 Entrando...', 'info');
+          const result = await window.authManager.signIn(email, password);
+          showMessage(result.message, result.success ? 'success' : 'error');
+          
+          if (result.success) loginForm.reset();
+        };
+      }
 
-      signupForm.onsubmit = (e) => {
-        e.preventDefault();
-        const name = document.getElementById('signupName').value.trim();
-        const email = document.getElementById('signupEmail').value.trim();
-        const password = document.getElementById('signupPassword').value;
-        if (!name || !email || !password) { showMessage('Preencha todos os campos', 'error'); return; }
-        if (password.length < 6) { showMessage('Senha mínima: 6 caracteres', 'error'); return; }
-        showMessage('Cadastro temporário - configure Supabase para funcionar', 'success');
-        signupForm.reset();
-        setTimeout(switchToLogin, 2000);
-      };
+      // Cadastro
+      if (signupForm) {
+        signupForm.onsubmit = async (e) => {
+          e.preventDefault();
+          const name = document.getElementById('signupName').value.trim();
+          const email = document.getElementById('signupEmail').value.trim();
+          const password = document.getElementById('signupPassword').value;
+          
+          if (!name || !email || !password) {
+            showMessage('Preencha todos os campos', 'error');
+            return;
+          }
+          
+          if (password.length < 6) {
+            showMessage('Senha deve ter no mínimo 6 caracteres', 'error');
+            return;
+          }
+          
+          if (!window.authManager) {
+            showMessage('Sistema não inicializado. Verifique o console.', 'error');
+            return;
+          }
+          
+          showMessage('🔄 Criando conta...', 'info');
+          const result = await window.authManager.signUp(email, password, name);
+          showMessage(result.message, result.success ? 'success' : 'error');
+          
+          if (result.success) {
+            signupForm.reset();
+            setTimeout(switchToLogin, 3000);
+          }
+        };
+      }
 
-      forgotPasswordBtn.onclick = (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value.trim();
-        if (!email) { showMessage('Digite seu email no campo acima', 'error'); return; }
-        if (confirm(`Enviar email para ${email}?`)) {
-          showMessage('Recuperação de senha - configure Supabase para funcionar', 'info');
-        }
-      };
+      // Esqueci senha
+      if (forgotPasswordBtn) {
+        forgotPasswordBtn.onclick = async (e) => {
+          e.preventDefault();
+          const email = document.getElementById('loginEmail').value.trim();
+          
+          if (!email) {
+            showMessage('Digite seu email no campo acima primeiro', 'error');
+            document.getElementById('loginEmail').focus();
+            return;
+          }
+          
+          if (!confirm(`Enviar email de recuperação para ${email}?`)) return;
+          
+          if (!window.authManager) {
+            showMessage('Sistema não inicializado. Verifique o console.', 'error');
+            return;
+          }
+          
+          showMessage('🔄 Enviando email...', 'info');
+          const result = await window.authManager.resetPassword(email);
+          showMessage(result.message, result.success ? 'success' : 'error');
+        };
+      }
+
+      // Logout
+      if (logoutBtn) {
+        logoutBtn.onclick = async (e) => {
+          e.preventDefault();
+          if (!confirm('Deseja realmente sair?')) return;
+          
+          if (!window.authManager) {
+            showMessage('Sistema não inicializado. Verifique o console.', 'error');
+            return;
+          }
+          
+          const result = await window.authManager.signOut();
+          if (result.success) {
+            showMessage(result.message, 'success');
+          } else {
+            showMessage(result.message, 'error');
+          }
+        };
+      }
 
       switchToLogin();
     });
   </script>
-  
   <script src="app.js"></script>
 </body>
 </html>
