@@ -1,13 +1,14 @@
-// auth-handlers.js — Manipuladores de eventos da autenticação
+// auth-handlers.js — Manipuladores de eventos da autenticação (SEM GOOGLE)
 
 document.addEventListener('DOMContentLoaded', () => {
+  
+  console.log('[AUTH] Handlers inicializados');
   
   // Elementos
   const tabLogin = document.getElementById('tabLogin');
   const tabSignup = document.getElementById('tabSignup');
   const loginForm = document.getElementById('loginForm');
   const signupForm = document.getElementById('signupForm');
-  const googleLoginBtn = document.getElementById('googleLoginBtn');
   const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
   const authMessage = document.getElementById('authMessage');
   const logoutBtn = document.getElementById('logoutBtn');
@@ -15,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Função para mostrar mensagem
   function showMessage(message, type = 'info') {
     if (!authMessage) return;
+    
+    console.log(`[AUTH] Mensagem (${type}):`, message);
     
     authMessage.textContent = message;
     authMessage.style.display = 'block';
@@ -38,32 +41,51 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 5000);
   }
 
-  // Alternar entre Login e Cadastro
-  if (tabLogin) {
-    tabLogin.addEventListener('click', () => {
-      tabLogin.classList.add('active');
-      tabSignup.classList.remove('active');
+  // Função para alternar abas
+  function switchToLogin() {
+    console.log('[AUTH] Alternando para Login');
+    if (tabLogin) {
       tabLogin.style.color = '#0d7de0';
       tabLogin.style.borderBottom = '3px solid #0d7de0';
+    }
+    if (tabSignup) {
       tabSignup.style.color = '#6b7280';
       tabSignup.style.borderBottom = '3px solid transparent';
-      loginForm.style.display = 'block';
-      signupForm.style.display = 'none';
-      authMessage.style.display = 'none';
+    }
+    if (loginForm) loginForm.style.display = 'block';
+    if (signupForm) signupForm.style.display = 'none';
+    if (authMessage) authMessage.style.display = 'none';
+  }
+
+  function switchToSignup() {
+    console.log('[AUTH] Alternando para Cadastro');
+    if (tabSignup) {
+      tabSignup.style.color = '#0d7de0';
+      tabSignup.style.borderBottom = '3px solid #0d7de0';
+    }
+    if (tabLogin) {
+      tabLogin.style.color = '#6b7280';
+      tabLogin.style.borderBottom = '3px solid transparent';
+    }
+    if (signupForm) signupForm.style.display = 'block';
+    if (loginForm) loginForm.style.display = 'none';
+    if (authMessage) authMessage.style.display = 'none';
+  }
+
+  // Event listeners das abas
+  if (tabLogin) {
+    tabLogin.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      switchToLogin();
     });
   }
 
   if (tabSignup) {
-    tabSignup.addEventListener('click', () => {
-      tabSignup.classList.add('active');
-      tabLogin.classList.remove('active');
-      tabSignup.style.color = '#0d7de0';
-      tabSignup.style.borderBottom = '3px solid #0d7de0';
-      tabLogin.style.color = '#6b7280';
-      tabLogin.style.borderBottom = '3px solid transparent';
-      signupForm.style.display = 'block';
-      loginForm.style.display = 'none';
-      authMessage.style.display = 'none';
+    tabSignup.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      switchToSignup();
     });
   }
 
@@ -75,8 +97,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value;
 
+      console.log('[AUTH] Tentando login com email:', email);
+
       if (!email || !password) {
         showMessage('Preencha todos os campos', 'error');
+        return;
+      }
+
+      if (!window.authManager) {
+        showMessage('Sistema de autenticação não inicializado. Verifique as configurações.', 'error');
+        console.error('[AUTH] authManager não encontrado');
         return;
       }
 
@@ -102,6 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const email = document.getElementById('signupEmail').value.trim();
       const password = document.getElementById('signupPassword').value;
 
+      console.log('[AUTH] Tentando cadastro:', { name, email });
+
       if (!name || !email || !password) {
         showMessage('Preencha todos os campos', 'error');
         return;
@@ -112,6 +144,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      if (!window.authManager) {
+        showMessage('Sistema de autenticação não inicializado. Verifique as configurações.', 'error');
+        console.error('[AUTH] authManager não encontrado');
+        return;
+      }
+
       showMessage('🔄 Criando conta...', 'info');
 
       const result = await window.authManager.signUp(email, password, name);
@@ -119,9 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (result.success) {
         showMessage(result.message, 'success');
         signupForm.reset();
-        // Volta para a aba de login após 3 segundos
         setTimeout(() => {
-          if (tabLogin) tabLogin.click();
+          switchToLogin();
         }, 3000);
       } else {
         showMessage(result.message, 'error');
@@ -129,21 +166,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Login com Google
-  if (googleLoginBtn) {
-    googleLoginBtn.addEventListener('click', async () => {
-      showMessage('🔄 Redirecionando para o Google...', 'info');
-      const result = await window.authManager.signInWithGoogle();
-      
-      if (!result.success && result.message) {
-        showMessage(result.message, 'error');
-      }
-    });
-  }
-
   // Esqueci minha senha
   if (forgotPasswordBtn) {
-    forgotPasswordBtn.addEventListener('click', async () => {
+    forgotPasswordBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
       const email = document.getElementById('loginEmail').value.trim();
       
       if (!email) {
@@ -153,6 +181,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (!confirm(`Enviar email de recuperação para ${email}?`)) return;
+
+      if (!window.authManager) {
+        showMessage('Sistema de autenticação não inicializado.', 'error');
+        return;
+      }
 
       showMessage('🔄 Enviando email...', 'info');
 
@@ -168,8 +201,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Logout
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      console.log('[AUTH] Tentando logout');
+      
       if (!confirm('Deseja realmente sair?')) return;
+
+      if (!window.authManager) {
+        showMessage('Sistema de autenticação não inicializado.', 'error');
+        return;
+      }
 
       const result = await window.authManager.signOut();
       
@@ -180,5 +223,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // Inicializa na aba de Login
+  switchToLogin();
 
 });
